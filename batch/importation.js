@@ -17,7 +17,7 @@ process.stdin.on('end', function () {
     });
 
 function xmlToJson(xmlRaw){
-    process.stdout.write('Converting XML to GeoJson\n');
+    console.error('Converting XML to GeoJson');
     xml = (new DOMParser()).parseFromString(xmlRaw, 'text/xml');
     graph = osmtogeojson.toGeojson(xml);
     delete xml;
@@ -26,7 +26,7 @@ function xmlToJson(xmlRaw){
 }
 
 function processGraph(graphXml){
-    process.stdout.write('Start\n');
+    console.error('Start');
     graph = xmlToJson(graphXml);
     graph = takeOffPolygon(graph);
     graph = takeOffUselessLine(graph);
@@ -34,7 +34,7 @@ function processGraph(graphXml){
 }
 
 function takeOffPolygon(graph){
-    process.stdout.write('Take off Polygon\n');
+    console.error('Take off Polygon');
     for (var i= 0; i < graph.features.length; i++) {
         if(graph.features[i].geometry.type == "MultiPolygon" || graph.features[i].geometry.type == "Polygon"){
             graph.features[i] = null;
@@ -44,7 +44,7 @@ function takeOffPolygon(graph){
 }
 
 function takeOffUselessLine(graph){
-    process.stdout.write('Take off useless lineString\n');
+    console.error('Take off useless lineString');
     for (var i= 0; i < graph.features.length; i++) {
         row = graph.features[i];
         if(row != null && row.geometry.type == "LineString"){
