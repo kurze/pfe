@@ -21,6 +21,7 @@ process.stdin.on('end', function () {
 function xmlToJson(xmlRaw){
     console.error('Converting XML to GeoJson');
     var xml = (new DOMParser()).parseFromString(xmlRaw, 'text/xml');
+    xmlRaw = null;
     var graph = osmtogeojson.toGeojson(xml);
     return graph;
 }
@@ -29,6 +30,7 @@ function processGraph(graphXml){
     console.error('Start');
     var graph;
     graph = xmlToJson(graphXml);
+    graphXml = null;
     graph = takeOffPolygon(graph);
     graph = takeOffUselessLine(graph);
     graph = removeNull(graph);
@@ -71,10 +73,12 @@ function takeOffUselessLine(graph){
 
 function removeNull(graph){
     console.error('Remove Null row');
-    var newGraph = [];
-    for (var i= 0; i < graph.features.length; i++) {
-        if(graph.features[i] != null){
-            newGraph.push(graph.features[i]);
+    var newGraph = graph;
+    var features = graph.features;
+    newGraph.features = [];
+    for (var i= 0; i < features.length; i++) {
+        if(features[i] != null){
+            newGraph.features.push(features[i]);
         }
     }
     return newGraph;
@@ -83,5 +87,6 @@ function removeNull(graph){
 function exportGraph(graph){
     console.error('Export graph in GEOJson');
     var graphJson = JSON.stringify(graph);
+    graph = null;
     process.stdout.write(graphJson);
 }
