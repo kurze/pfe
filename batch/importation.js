@@ -26,7 +26,7 @@ process.stdin.on('end', function () {
 
     process.stdout.write('End converting XML to GeoJson\n');
 
-    process.stdout.write('0 size : ' + roughSizeOfObject(jsonFull) + '\n');
+     //process.stdout.write('0 size : ' + roughSizeOfObject(jsonFull) + '\n');
 
     process.stdout.write('Take off Polygon\n');
     for (var i= 0; i < jsonFull.features.length; i++) {
@@ -34,13 +34,14 @@ process.stdin.on('end', function () {
             jsonFull.features[i] = null;
         }
     }
-    process.stdout.write('1 size : ' + roughSizeOfObject(jsonFull) + '\n');
+
+    //process.stdout.write('1 size : ' + roughSizeOfObject(jsonFull) + '\n');
 
     process.stdout.write('Take off useless lineString\n');
     for (var i= 0; i < jsonFull.features.length; i++) {
         row = jsonFull.features[i];
         if(row != null && row.geometry.type == "LineString"){
-            if(row.properties != null && row.properties.highway != null){
+            if(row.properties != null && row.properties.highway != null){ // keep road, if usable by cyclist
                 highway = row.properties.highway;
                 if(highway != motorway &&
                    highway != trunk &&
@@ -50,11 +51,13 @@ process.stdin.on('end', function () {
                    highway != steps){
                     continue;
                 }
+            } else if(row.properties != null && row.properties.cycleway != null){ // keep cycleway
+                continue;
             }
+            jsonFull.features[i] = null;
         }
-        jsonFull.features[i] = null;
     }
-    process.stdout.write('2 size : ' + roughSizeOfObject(jsonFull) + '\n');
+    //process.stdout.write('2 size : ' + roughSizeOfObject(jsonFull) + '\n');
 });
 
 
