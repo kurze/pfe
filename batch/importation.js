@@ -13,7 +13,7 @@ process.stdin.on('data', function (chunk) {
 });
 
 process.stdin.on('end', function () {
-        graph = processGraph(XMLRaw);
+        processGraph(XMLRaw);
     });
 
 function xmlToJson(xmlRaw){
@@ -30,14 +30,15 @@ function processGraph(graphXml){
     graph = xmlToJson(graphXml);
     graph = takeOffPolygon(graph);
     graph = takeOffUselessLine(graph);
-    return graph;
+    graph = removeNull(graph);
+    exportGraph(graph);
 }
 
 function takeOffPolygon(graph){
     console.error('Take off Polygon');
     for (var i= 0; i < graph.features.length; i++) {
         if(graph.features[i].geometry.type == "MultiPolygon" || graph.features[i].geometry.type == "Polygon"){
-            graph.features[i] = null;
+            delete graph.features[i];
         }
     }
     return graph;
@@ -61,8 +62,26 @@ function takeOffUselessLine(graph){
             } else if(row.properties != null && row.properties.cycleway != null){ // keep cycleway
                 continue;
             }
-            graph.features[i] = null;
+            delete graph.features[i];
         }
     }
     return graph;
+}
+
+function removeNull(graph){
+    console.error('Remove Null row');
+    newGraph = [];
+    for (var i= 0; i < graph.features.length; i++) {
+        if(graph.features[i] != null){
+            newGraph.push(graph.features[i]);
+        }
+    }
+    return newGraph;
+}
+
+function exportGraph(graph){
+    console.error('Export graph in GEOJson');
+    graphJson = JSON.stringify(graph);
+    delete graph;
+    process.stdout.write(graphJson);
 }
