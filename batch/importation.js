@@ -8,38 +8,45 @@ process.stdin.setEncoding('utf8');
 
 var XMLRaw="";
 
-process.stdout.write('Start\n');
-
-
-
 process.stdin.on('data', function (chunk) {
     XMLRaw += chunk;
 });
 
 process.stdin.on('end', function () {
-    process.stdout.write('End reading stdin\n');
-    process.stdout.write('Start converting XML to GeoJson\n');
+        graph = processGraph(XMLRaw);
+    });
 
-    xml = (new DOMParser()).parseFromString(XMLRaw, 'text/xml');
-    jsonFull = osmtogeojson.toGeojson(xml);
+function xmlToJson(xmlRaw){
+    process.stdout.write('Converting XML to GeoJson\n');
+    xml = (new DOMParser()).parseFromString(xmlRaw, 'text/xml');
+    graph = osmtogeojson.toGeojson(xml);
     delete xml;
+    delete xmlRaw;
+    return graph;
+}
 
-    process.stdout.write('End converting XML to GeoJson\n');
+function processGraph(graphXml){
+    process.stdout.write('Start\n');
+    graph = xmlToJson(graphXml);
+    graph = takeOffPolygon(graph);
+    graph = takeOffUselessLine(graph);
+    return graph;
+}
 
-     //process.stdout.write('0 size : ' + roughSizeOfObject(jsonFull) + '\n');
-
+function takeOffPolygon(graph){
     process.stdout.write('Take off Polygon\n');
-    for (var i= 0; i < jsonFull.features.length; i++) {
-        if(jsonFull.features[i].geometry.type == "MultiPolygon" || jsonFull.features[i].geometry.type == "Polygon"){
-            jsonFull.features[i] = null;
+    for (var i= 0; i < graph.features.length; i++) {
+        if(graph.features[i].geometry.type == "MultiPolygon" || graph.features[i].geometry.type == "Polygon"){
+            graph.features[i] = null;
         }
     }
+    return graph;
+}
 
-    //process.stdout.write('1 size : ' + roughSizeOfObject(jsonFull) + '\n');
-
+function takeOffUselessLine(graph){
     process.stdout.write('Take off useless lineString\n');
-    for (var i= 0; i < jsonFull.features.length; i++) {
-        row = jsonFull.features[i];
+    for (var i= 0; i < graph.features.length; i++) {
+        row = graph.features[i];
         if(row != null && row.geometry.type == "LineString"){
             if(row.properties != null && row.properties.highway != null){ // keep road, if usable by cyclist
                 highway = row.properties.highway;
@@ -54,47 +61,8 @@ process.stdin.on('end', function () {
             } else if(row.properties != null && row.properties.cycleway != null){ // keep cycleway
                 continue;
             }
-            jsonFull.features[i] = null;
+            graph.features[i] = null;
         }
     }
-    //process.stdout.write('2 size : ' + roughSizeOfObject(jsonFull) + '\n');
-});
-
-
-
-function roughSizeOfObject( object ) {
-
-    var objectList = [];
-
-    var recurse = function( value )
-    {
-        var bytes = 0;
-
-        if ( typeof value === 'boolean' ) {
-            bytes = 4;
-        }
-        else if ( typeof value === 'string' ) {
-            bytes = value.length * 2;
-        }
-        else if ( typeof value === 'number' ) {
-            bytes = 8;
-        }
-        else if
-        (
-            typeof value === 'object'
-            && objectList.indexOf( value ) === -1
-        )
-        {
-            objectList[ objectList.length ] = value;
-
-            for( i in value ) {
-                bytes+= 8; // an assumed existence overhead
-                bytes+= recurse( value[i] )
-            }
-        }
-
-        return bytes;
-    }
-
-    return recurse( object );
+    return graph;
 }
