@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict"
+
 var osmtogeojson = require('osmtogeojson'),
     DOMParser = require("xmldom").DOMParser;
 
@@ -18,15 +20,14 @@ process.stdin.on('end', function () {
 
 function xmlToJson(xmlRaw){
     console.error('Converting XML to GeoJson');
-    xml = (new DOMParser()).parseFromString(xmlRaw, 'text/xml');
-    graph = osmtogeojson.toGeojson(xml);
-    delete xml;
-    delete xmlRaw;
+    var xml = (new DOMParser()).parseFromString(xmlRaw, 'text/xml');
+    var graph = osmtogeojson.toGeojson(xml);
     return graph;
 }
 
 function processGraph(graphXml){
     console.error('Start');
+    var graph;
     graph = xmlToJson(graphXml);
     graph = takeOffPolygon(graph);
     graph = takeOffUselessLine(graph);
@@ -47,10 +48,10 @@ function takeOffPolygon(graph){
 function takeOffUselessLine(graph){
     console.error('Take off useless lineString');
     for (var i= 0; i < graph.features.length; i++) {
-        row = graph.features[i];
+        var row = graph.features[i];
         if(row != null && row.geometry.type == "LineString"){
             if(row.properties != null && row.properties.highway != null){ // keep road, if usable by cyclist
-                highway = row.properties.highway;
+                var highway = row.properties.highway;
                 if(highway != motorway &&
                    highway != trunk &&
                    highway != motorway_link &&
@@ -70,7 +71,7 @@ function takeOffUselessLine(graph){
 
 function removeNull(graph){
     console.error('Remove Null row');
-    newGraph = [];
+    var newGraph = [];
     for (var i= 0; i < graph.features.length; i++) {
         if(graph.features[i] != null){
             newGraph.push(graph.features[i]);
@@ -81,7 +82,6 @@ function removeNull(graph){
 
 function exportGraph(graph){
     console.error('Export graph in GEOJson');
-    graphJson = JSON.stringify(graph);
-    delete graph;
+    var graphJson = JSON.stringify(graph);
     process.stdout.write(graphJson);
 }
