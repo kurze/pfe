@@ -63,6 +63,10 @@ nameList=(
 mkdir out
 
 for ((i=1; $i <= $#urlList; i++)) do
-    curl $urlList[$i] | bzcat | ./importation.js > out/$nameList[$i].json
+    curl $urlList[$i] > tmp
+    cat tmp | bzcat > tmp2
+    rm tmp
+    cat tmp2 | ./importation.js > out/$nameList[$i].json
+    rm tmp2
 done
 
