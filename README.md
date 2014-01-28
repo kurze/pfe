@@ -2,29 +2,6 @@
 
 Application created during final project study @ Polytech Tours
 
-
-## Batch
-
-script for importation of graph into GEOJson format
-
-based of osmtogeojson and nodejs
-
-broken because, doesn't support more than 60Mo of data.
-
-### Use
-
-####prerequisite (for now)
-
-	zsh, nodejs, npm
-
-####install dependency
-
-	make init
-
-####run
-
-	./batch.zsh
-
 ## Application
 
 Web application
@@ -42,3 +19,25 @@ Web application
 ####run
 
 	grunt serve
+
+## Batch
+
+script for importation of graph into GEOJson format
+
+based of [osmtogeojson](https://github.com/tyrasd/osmtogeojson) and nodejs
+
+broken right now because doesn't support more than 60Mo of data.
+
+### Use
+
+####prerequisite (for now)
+
+	zsh, nodejs, npm
+
+####install dependency
+
+	make init
+
+####run
+
+	./batch.zsh
