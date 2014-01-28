@@ -10,6 +10,10 @@ angular.module('app', [
         templateUrl: 'views/main.html',
         controller: 'MainCtrl'
       })
+      .when('/chooseComputeEngine', {
+        templateUrl: 'views/chooseComputeEngine.html',
+        controller: 'ChooseComputeEngineCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });

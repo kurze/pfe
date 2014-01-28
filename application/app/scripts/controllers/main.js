@@ -7,4 +7,8 @@ angular.module('app')
       'AngularJS',
       'Karma'
     ];
-  });
+  })
+	.controller('ChooseComputeEngineCtrl', ['$scope', 'CEHelloWorld', function ($scope, $CEHelloWorld) {
+		$scope.ListComputeEngine = [];
+		$scope.ListComputeEngine.push($CEHelloWorld);
+	}]);
