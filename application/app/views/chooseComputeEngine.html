@@ -10,10 +10,16 @@
 <div class="jumbotron">
   <h1>Choose the compute Engine</h1>
   <p class="lead">
-    <select ng:repeat="CE in ListComputeEngine">
-       <option value="{{CE.getId()}}">{{CE.getName()}} - {{CE.getVersion()}}</option>
+    <select ng-model="selected" ng-options="CE.getName() for CE in listComputeEngine" ng-change="change()">
+       <!--<option value="">{{CE.getName()}} - {{CE.getVersion()}}</option>-->
     </select>
   </p>
+  <ul class="list-unstyled">
+    <li>Currently selected: {{selected.getName()}}</li>
+    <li>version : {{selected.getVersion()}}</li>
+    <li>id : {{selected.getId()}}</li>
+    <li>mode : {{selected.getMode()}}
+  </ul>
 </div>
 
 <div class="footer">
