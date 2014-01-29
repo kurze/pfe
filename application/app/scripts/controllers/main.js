@@ -11,7 +11,11 @@ angular.module('app')
 	.controller('ChooseComputeEngineCtrl', ['$scope', '$log', 'ListeComputeEngine', function ($scope, $log, ListeCE) {
 		$scope.listComputeEngine = [];
 
-		$log.debug('number item ListeCE : '+ListeCE.getLength());
+		$scope.ListeCE = ListeCE;
+
+		$log.debug('number item ListeCE : ' + ListeCE.getLength());
+
+		ListeCE.selected=null;
 
 		for (var i = ListeCE.getLength() - 1; i >= 0; i--) {
 			$scope.listComputeEngine.push(ListeCE.getItem(i));
