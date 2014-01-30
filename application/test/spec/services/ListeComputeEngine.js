@@ -34,4 +34,9 @@ describe('Service: ListeComputeEngine', function () {
 		}
 	});
 
+	it('"selected" should exist and should be null by default', function () {
+		expect(ListeCE.selected).toBeDefined();
+		expect(ListeCE.selected).toBeNull();
+	});
+
 });
