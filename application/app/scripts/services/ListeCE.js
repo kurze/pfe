@@ -17,10 +17,10 @@ ListeComputeEngine.prototype.selected = null;
 
 /// retrieve one or all item in the list
 ListeComputeEngine.prototype.getItem = function(i) {
-	if(arguments.length===0){
+	if(arguments.length === 0){
 		return this.liste;
 	}
-	else if(arguments.length===1){
+	else if(arguments.length === 1){
 		return this.liste[i];
 	}
 	else{
