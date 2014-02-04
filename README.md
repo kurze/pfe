@@ -10,7 +10,8 @@ Web application
 
 ####prerequisite
 
-	nodejs, npm
+ * nodejs
+ * npm
 
 ####install dependency
 
@@ -32,7 +33,9 @@ broken right now because doesn't support more than 60Mo of data.
 
 ####prerequisite (for now)
 
-	zsh, nodejs, npm
+ * zsh
+ * nodejs
+ * npm
 
 ####install dependency
 
