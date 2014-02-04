@@ -8,7 +8,7 @@ angular.module('app')
 
 		$log.debug('number item ListeCE : ' + ListeCE.getLength());
 
-		ListeCE.selected=null;
+		$scope.selected = ListeCE.selected;
 
 		for (var i = ListeCE.getLength() - 1; i >= 0; i--) {
 			$scope.listComputeEngine.push(ListeCE.getItem(i));
@@ -16,6 +16,6 @@ angular.module('app')
 
 		$scope.change = function(){
 			ListeCE.selected = $scope.selected;
-			$log.debug(ListeCE.selected);
+			$log.debug('Compute Engine selected : ' + ListeCE.selected);
 		};
 	}]);
