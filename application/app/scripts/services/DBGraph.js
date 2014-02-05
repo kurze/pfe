@@ -12,8 +12,10 @@ var DBGraph = function() {
 		}
 	});
 
-	this.thresold = 10;
+	
 };
+
+DBGraph.prototype.thresold = 10;
 
 DBGraph.prototype.addBaseIndex = function() {
 	// root of the quadtree
@@ -120,26 +122,78 @@ DBGraph.prototype.divideQuad = function(record, idQuad){
 		this.addNode(node, idQuad);
 	}
 };
-/*
-DBGraph.prototype.searchNode = function(record, idQuad){
 
+DBGraph.prototype.searchNode = function(coord, idQuad){
+	if(idQuad === null){
+		idQuad = 0;
+	}
 
-}
-*/
+	this.db.get('graph', idQuad).always(function(record) {
+		var r = record;
+		var result = null;
+		if(r.p === null){
+			if(Math.abs(coord[0]) < Math.abs(r.N) && Math.abs(coord[0]) > Math.abs((r.N+r.S)/2)){
+				if(Math.abs(coord[1]) < Math.abs(r.E) && Math.abs(coord[0]) > Math.abs((r.E+r.W)/2)){
+					result = this.searchNode(coord, r.NW);
+				}else{
+					result = this.searchNode(coord, r.NE);
+				}
+			}else{
+				if(Math.abs(coord[1]) < Math.abs(r.E) && Math.abs(coord[0]) > Math.abs((r.E+r.W)/2)){
+					result = this.searchNode(coord, r.SW);
+				}else{
+					result = this.searchNode(coord, r.SE);
+				}
+			}
+			if(result === null){
+				var tmp = [];
+				tmp.push(this.searchNode(coord, r.NW));
+				tmp.push(this.searchNode(coord, r.NE));
+				tmp.push(this.searchNode(coord, r.SW));
+				tmp.push(this.searchNode(coord, r.SE));
+				for(var row in tmp){
+					if(result === null || result.dist > row.dist){
+						result = row;
+					}
+				}
+
+			}
+			return result;
+		}else{// leaf
+			var bestDist = null;
+			var best = null;
+			var compareDistNode = function(record){
+				var x = record.geometry.coordinates[0] - coord[0];
+				var y = record.geometry.coordinates[1] - coord[1];
+				var dist = Math.sqrt(Math.pow(x) + Math.pow(y));
+				if(bestDist=== null || bestDist > dist){
+					bestDist = dist;
+					best = record;
+					best.dist = bestDist;
+				}
+			};
+			for(var i in r.p){
+				this.db.get('graph', i).always(compareDistNode(record));
+			}
+			return best;
+		}
+	});
+};
+
 DBGraph.prototype.addLine = function(LineString){
 
 	var idLine = this.NextKey++;
 	this.db.add('graph', LineString, idLine);
 
 
-	for(var coor in geometry.coordinates){
+	for(var coor in LineString.geometry.coordinates){
 		var node;
 		node.geometry.type = 'point';
 		node.geometry.coordinates = coor;
 		node.geometry.idLine = idLine;
 		this.addNode(node);
 	}
-}
+};
 
 /// attache engine to the app as a service
 angular.module('app').service('DBGraph', DBGraph);
