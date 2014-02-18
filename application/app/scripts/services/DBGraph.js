@@ -1,8 +1,13 @@
 'use strict';
 
+// TODO : see localforge to evnetually replace ydn
+// TODO : split index, node and edge in different store
+
 // constructor
 var DBGraph = function() {
+
 	this.db = new ydn.db.Storage('graph');
+	this.db.put('graph', {}, 0);
 	this.db.count('graph').done(function(x) {
 		if(x > 1){
 			this.addBaseIndex();
@@ -10,12 +15,13 @@ var DBGraph = function() {
 		}else{
 			this.NextKey = x;
 		}
+	}).fail(function(){
+		this.addBaseIndex();
+		this.NextKey = 1;
 	});
-
-	
 };
 
-DBGraph.prototype.thresold = 10;
+DBGraph.prototype.threshold = 10;
 
 DBGraph.prototype.addBaseIndex = function() {
 	// root of the quadtree
@@ -59,7 +65,7 @@ DBGraph.prototype.addNode = function(node, idQuad) {
 				}
 			}
 
-		}else if(record.p.length <= this.thresold){
+		}else if(record.p.length <= this.threshold){
 			id = this.NextKey++;
 			this.db.add('graph', node, id);
 			record.p.push(this.NextKey);
@@ -121,6 +127,29 @@ DBGraph.prototype.divideQuad = function(record, idQuad){
 	for(var node in NodeToMove){
 		this.addNode(node, idQuad);
 	}
+};
+
+DBGraph.prototype.delete = function(id){
+	if(id === null){
+		id = 0;
+	}
+	this.db.get('graph', id).done(function(r){
+		if(r.p !== null){
+			for(var idNode in r.p){
+				this.db.clear('graph', idNode);
+			}
+		}else{
+			this.delete(r.NW);
+			this.delete(r.NE);
+			this.delete(r.SW);
+			this.delete(r.SE);
+		}
+		this.db.clear('graph', id);
+	});
+};
+
+DBGraph.prototype.deleteAll = function(){
+	this.db.clear('graph');
 };
 
 DBGraph.prototype.searchNode = function(coord, idQuad){
