@@ -18,6 +18,10 @@ angular.module('app', [
         templateUrl: 'views/chooseRenderEngine.html',
         controller: 'ChooseRenderEngineCtrl'
       })
+      .when('/manageMap', {
+        templateUrl: 'views/manageMap.html',
+        controller: 'ManageMapCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });
