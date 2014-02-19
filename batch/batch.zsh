@@ -1,5 +1,8 @@
 #! /bin/zsh
 
+printBold(){
+	echo "\033[1m"$1 $2"\033[0m"
+}
 
 urlList=(
     "http://download.geofabrik.de/europe/france/alsace-latest.osm.bz2"
@@ -63,10 +66,37 @@ nameList=(
 mkdir out
 
 for ((i=1; $i <= $#urlList; i++)) do
-    curl $urlList[$i] > tmp
-    cat tmp | bzcat > tmp2
-    rm tmp
-    cat tmp2 | ./importation.js > out/$nameList[$i].json
-    rm tmp2
-done
 
+	##echo "\033[1m#" $nameList[$i] "\033[0m"
+	printBold "#" $nameList[$i]
+
+	printBold "## download and inflate"
+	curl $urlList[$i] | bzcat > tmp.osm
+
+	printBold "## extract useful data"
+	osmosis \
+		--read-xml tmp.osm \
+		--tf accept-ways highway="*"  \
+		--tf reject-ways highway=motorway,motorway_link,trunk,trunk_link,bridleway,steps,proposed,construction \
+		--tf reject-relations \
+		--used-node outPipe.0=HIGHWAY \
+		\
+		--read-xml tmp.osm \
+		--tf accept-ways cycleway="*"  \
+		--tf reject-relations \
+		--used-node outPipe.0=CYCLEWAY \
+		\
+		--merge inPipe.0=HIGHWAY inPipe.1=CYCLEWAY \
+		--write-xml tmpFiltered.osm
+
+	printBold "## xml to GeoJson"
+	osmtogeojson tmpFiltered.osm > tmpFiltered.json
+
+	printBold "## cleaning"
+	rm tmp.osm
+	rm tmpFiltered.osm
+	#cat tmpFiltered.json | ./importation.js > out/$nameList[$i].json
+	mv tmpFiltered.json out/$nameList[$i].json
+
+	printBold " "
+done
