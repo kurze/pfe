@@ -59,11 +59,12 @@ nameList=(
     "picardie"
     "poitou-charentes"
     "provence-alpes-cote-d-azur"
-    "reunion-latest"
-    "rhone-alpes-latest"
+    "reunion"
+    "rhone-alpes"
 )
 
 mkdir out
+mkdir tmp
 
 for ((i=1; $i <= $#urlList; i++)) do
 
@@ -71,32 +72,63 @@ for ((i=1; $i <= $#urlList; i++)) do
 	printBold "#" $nameList[$i]
 
 	printBold "## download and inflate"
-	curl $urlList[$i] | bzcat > tmp.osm
+	curl $urlList[$i] > tmp/$nameList[$i].osm.bz2 
+	cat tmp/$nameList[$i].osm.bz2 | bzcat > tmp/$nameList[$i].osm
 
 	printBold "## extract useful data"
-	osmosis \
-		--read-xml tmp.osm \
-		--tf accept-ways highway="*"  \
-		--tf reject-ways highway=motorway,motorway_link,trunk,trunk_link,bridleway,steps,proposed,construction \
+	osmosis -q\
+		--read-xml tmp/$nameList[$i].osm \
+		--tf accept-ways highway=primary \
 		--tf reject-relations \
-		--used-node outPipe.0=HIGHWAY \
+		--used-node \
+		--write-xml tmp/$nameList[$i].highway-primary.osm \
 		\
-		--read-xml tmp.osm \
-		--tf accept-ways cycleway="*"  \
+		--read-xml tmp/$nameList[$i].osm \
+		--tf accept-ways highway=secondary \
 		--tf reject-relations \
-		--used-node outPipe.0=CYCLEWAY \
+		--used-node \
+		--write-xml tmp/$nameList[$i].highway-secondary.osm \
 		\
-		--merge inPipe.0=HIGHWAY inPipe.1=CYCLEWAY \
-		--write-xml tmpFiltered.osm
+		--read-xml tmp/$nameList[$i].osm \
+		--tf accept-ways highway=tertiary \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/$nameList[$i].highway-tertiary.osm \
+		\
+		\
+		\
+		--read-xml tmp/$nameList[$i].osm \
+		--tf accept-ways highway="*" \
+		--tf reject-ways highway=motorway,motorway_link,trunk,trunk_link,bridleway,steps,proposed,construction,raceway,primary,secondary,tertiary \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/$nameList[$i].highway.osm \
+		\
+		--read-xml tmp/$nameList[$i].osm \
+		--tf accept-ways cycleway="*" \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/$nameList[$i].cycleway.osm \
+		\
 
 	printBold "## xml to GeoJson"
-	osmtogeojson tmpFiltered.osm > tmpFiltered.json
+	osmtogeojson tmp/$nameList[$i].highway.osm > tmp/$nameList[$i].highway-primary.json &
+	osmtogeojson tmp/$nameList[$i].highway.osm > tmp/$nameList[$i].highway-secondary.json &
+	osmtogeojson tmp/$nameList[$i].highway.osm > tmp/$nameList[$i].highway-tertiary.json &
+	osmtogeojson tmp/$nameList[$i].cycleway.osm > tmp/$nameList[$i].cycleway.json &
+	wait
+	
+
+	printBold "## assembling"
+	python2 merge-geojsons.py tmp/$nameList[$i].*.json out/$nameList[$i].json
 
 	printBold "## cleaning"
-	rm tmp.osm
-	rm tmpFiltered.osm
-	#cat tmpFiltered.json | ./importation.js > out/$nameList[$i].json
-	mv tmpFiltered.json out/$nameList[$i].json
+	rm tmp/$nameList[$i]*
 
+	printBold "## compressing"
+	pushd out
+	bzip2 $nameList[$i].json
+	popd
+	
 	printBold " "
 done
