@@ -25,7 +25,7 @@ Web application
 
 script for importation of graph into GEOJson format
 
-based of [osmtogeojson](https://github.com/tyrasd/osmtogeojson) and nodejs
+based on [osmosis](http://wiki.openstreetmap.org/wiki/Osmosis), [osmtogeojson](https://github.com/tyrasd/osmtogeojson) et [merge-geojsons](https://gist.github.com/migurski/3759608)
 
 broken right now because doesn't support more than 60Mo of data.
 
@@ -36,6 +36,8 @@ broken right now because doesn't support more than 60Mo of data.
  * zsh
  * nodejs
  * npm
+ * osmosis
+ * curl
 
 ####install dependency
 
@@ -43,7 +45,16 @@ broken right now because doesn't support more than 60Mo of data.
 
 ####run
 
-	./batch.zsh
+	make
+
+####clean dependency
+
+	make cleanAll
+
+####clean Data (temporary and final)
+
+	make clean
+
 ## Server
 
 add CORS (Cross-Origin ressource sharing) habilitation [enable-cors](http://enable-cors.org/index.html)
