@@ -4,17 +4,45 @@ angular.module('app')
 	.controller('ManageMapCtrl', ['$scope', '$log', '$http', 'DBGraph', function ($scope, $log, $http, DBGraph) {
 		$scope.$log = $log;
 		$scope.DBGraph = DBGraph;
+
+		$scope.hide = true;
+		$scope.urlServer = 'http://depot.pfe.local/out/';
+		$scope.importState= "";
+		$scope.step = "";
+		$scope.size = "";
+
 		$log.debug('ManageMapCtrl loaded');
-		$scope.perdu = 0;
-		$scope.load = function(){
-			$http.get('http://172.25.15.81').success(function(data, status, headers, config) {
-				$scope.perdu=data || 'request failed';
+
+		$scope.loadList = function(){
+			$http.get($scope.urlServer).success(function(data, status) {
+
 				$log.debug('success : ' + status);
-				$log.debug('success : ' + data);
+				$log.debug('ListArea : ' + data.area);
+				$scope.listArea=data.area || 'request failed';
+				$scope.hide = false;
+				
 			}).error(function(data, status) {
-				$scope.perdu=data || 'request failed';
-				$log.debug('error : ' + status);
-				$log.debug('error : ' + data);
+				$scope.success=data || 'request failed';
 			});
 		};
+		$scope.select = function(){
+			$scope.importState = 'Downloading';
+			$http.get($scope.urlServer + $scope.selected + '.json').success(function(data, status) {
+				var step = {value : 0}; // object for passing by reference
+				var size = 	data.features.length;
+
+				$scope.importState = 'Importing : ';
+				$scope.step = step;
+				$scope.size = ' / '+size;
+
+				for (var i = 0; i <= size; i++) {
+					DBGraph.addFast(data.features[i], step);
+				};
+					
+			}).error(function() {
+				$scope.importState='Fail to Download area data';
+			});
+
+			
+		}
 	}]);

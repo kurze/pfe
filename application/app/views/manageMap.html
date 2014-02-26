@@ -9,10 +9,14 @@
 
 <div class="jumbotron">
 	<h1>Download new Map</h1>
-	<a class="btn btn-default btn-block" ng-click="load()">
-        load
+	<p>server url to contact : <input ng-model="urlServer"></input></p>
+	<a class="btn btn-default btn-block" ng-click="loadList()">
+        Get available area list
     </a>
-	<p>{{perdu}}</p>
+	<p>{{success}}</p>
+	<select ng-model="selected" ng-options="area for area in listArea" ng-change="select()" ng-hide="hide">
+    </select>
+    <p>{{importState}} {{step.value}}{{size}}</p>
 
 	
 </div>

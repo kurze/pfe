@@ -41,6 +41,22 @@ DBGraph.prototype.addBaseIndex = function() {
 
 };
 
+DBGraph.prototype.add = function(thing){
+	if(thing.geometry.type === 'Point'){
+		this.addNode(thing);
+	}else if(thing.geometry.type === 'LineString'){
+		this.addLine(thing);
+	}
+};
+
+DBGraph.prototype.addFast = function(thing, step){
+	localforage.setItem((this.NextKey++).toString(), thing, function(result) {
+		
+		step.value++;
+		console.log(step.value);
+	});
+};
+
 DBGraph.prototype.addNode = function(node, idQuad) {
 	// root of the quadtree
 	if(idQuad === null){
