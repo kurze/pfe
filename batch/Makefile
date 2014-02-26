@@ -1,7 +1,5 @@
 .PHONY: run launch init clean cleanDep 
 
-SUFFIXES ?= .pbf .bzip2 .json .osm
-.SUFFIXES: $(SUFFIXES) .
 
 #REGION = alsace aquitaine auvergne basse-normandie bourgogne bretagne centre champagne-ardenne corse franche-comte guadeloupe guyane haute-normandie ile-de-france languedoc limousin lorraine martinique mayotte midi-pyrenees nord-pas-de-calais pays-de-la-loire picardie poitou-charentes provence-alpes-cote-d-azur reunion rhone-alpes
 REGION = mayotte guyane
@@ -31,8 +29,9 @@ cleanDep: clean
 
 run: $(REGION)
 
-%: 
-	@curl $(URL_START)$@$(URL_END) > tmp/$@.osm.pbf
+%: out/%.json
+
+tmp/%.osm: tmp/%.osm.pbf
 	@osmosis -q \
 		--rbf tmp/$@.osm.pbf \
 		--tf accept-ways highway=primary \
@@ -100,20 +99,14 @@ run: $(REGION)
 		--tf reject-relations \
 		--used-node \
 		--write-xml tmp/$@.cycleway.osm
-	osmtogeojson tmp/$@.highway-primary.osm > tmp/$@.highway-primary.json
-	osmtogeojson tmp/$@.highway-secondary.osm > tmp/$@.highway-secondary.json
-	osmtogeojson tmp/$@.highway-tertiary.osm > tmp/$@.highway-tertiary.json
-	osmtogeojson tmp/$@.highway-unclassified.osm > tmp/$@.highway-unclassified.json
-	osmtogeojson tmp/$@.highway-link.osm > tmp/$@.highway-link.json
-	osmtogeojson tmp/$@.highway-road.osm > tmp/$@.highway-road.json
-	osmtogeojson tmp/$@.highway-other.osm > tmp/$@.highway-other.json
-	osmtogeojson tmp/$@.cycleway.osm > tmp/$@.cycleway.json
-	osmtogeojson tmp/$@.highway-residential.osm > tmp/$@.highway-residential.json
-	osmtogeojson tmp/$@.highway-service.osm > tmp/$@.highway-service.json
-	osmtogeojson tmp/$@.highway-track.osm > tmp/$@.highway-track.json
-	python2 merge-geojsons.py tmp/$@.*.json out/$@.json
 
+tmp/%.osm.pbf:
+	NAME=`echo $@ | grep -Eo "[^/\.]{4,}" - `
+	@curl $(URL_START)$(NAME)$(URL_END) > $@
 
-
-.osm.json:
+tmp/%.json: tmp/%.osm
 	osmtogeojson $+ >$@
+
+out/%.json: tmp/%.highway-other.json tmp/%.highway-primary.json tmp/%.highway-residential.json tmp/%.highway-road.json tmp/%.highway-secondary.json tmp/%.highway-service.json tmp/%.highway-tertiary.json tmp/%.highway-track.json tmp/%.highway-unclassified.json tmp/%.highway-link.json tmp/%.cycleway.json 
+	NAME=`echo $@ | grep -Eo "[^/\.]{4,}" - `
+	python2 merge-geojsons.py tmp/$(NAME).*.json $@
