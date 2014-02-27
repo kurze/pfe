@@ -7,7 +7,7 @@
 var DBGraph = function() {
 
 	this.db = new ydn.db.Storage('graph');
-	this.db.put('graph', {}, 0);
+	this.db.put('graph', {}, '0');
 	this.db.count('graph').done(function(x) {
 		if(x > 1){
 			this.addBaseIndex();
@@ -36,7 +36,7 @@ DBGraph.prototype.addBaseIndex = function() {
 		// SE : 4,
 		p : []
 	};
-	this.db.add('graph', root, 0);
+	this.db.add('graph', root, '0');
 
 
 };
@@ -49,23 +49,29 @@ DBGraph.prototype.add = function(thing){
 	}
 };
 
-DBGraph.prototype.addFast = function(thing, step){
-	localforage.setItem((this.NextKey++).toString(), thing, function(result) {
-		
+var NextKey = 0;
+DBGraph.prototype.addFast = function(thing, step, id){
+	if(this.NextKey === undefined){
+		this.NextKey = 0;
+	}
+	localforage.setItem(id.toString(), thing, function(result) {
+		NextKey++;
 		step.value++;
 		console.log(step.value);
+		console.log(result);
 	});
 };
 
 DBGraph.prototype.addNode = function(node, idQuad) {
 	// root of the quadtree
-	if(idQuad === null){
+	if(idQuad === undefined){
 		idQuad = 0;
 	}
 	var id = this.NextKey;
+	console.log('addNode idQuad : ' + idQuad);
 
-	this.db.get('graph', idQuad).always(function(record) {
-		if(record.p === null){
+	this.db.get('graph', idQuad.toString()).always(function(record) {
+		if(record.p === undefined){
 
 			if(node.geometry.coordinates[0] > (record.N+record.S)/2 ){
 				if(node.geometry.coordinates[1] > (record.W+record.E)/2 ){
@@ -83,9 +89,9 @@ DBGraph.prototype.addNode = function(node, idQuad) {
 
 		}else if(record.p.length <= this.threshold){
 			id = this.NextKey++;
-			this.db.add('graph', node, id);
+			this.db.add('graph', node, id.toString());
 			record.p.push(this.NextKey);
-			this.db.put('graph', record, idQuad);
+			this.db.put('graph', record, idQuad.toString());
 
 		}else{
 
@@ -134,11 +140,11 @@ DBGraph.prototype.divideQuad = function(record, idQuad){
 	var NodeToMove = r.p;
 	r.p = undefined;
 
-	this.db.add('graph', NW, r.NW);
-	this.db.add('graph', NE, r.NE);
-	this.db.add('graph', SW, r.SW);
-	this.db.add('graph', SE, r.SE);
-	this.db.add('graph', r, idQuad);
+	this.db.add('graph', NW, r.NW.toString());
+	this.db.add('graph', NE, r.NE.toString());
+	this.db.add('graph', SW, r.SW.toString());
+	this.db.add('graph', SE, r.SE.toString());
+	this.db.add('graph', r, idQuad.toString());
 
 	for(var node in NodeToMove){
 		this.addNode(node, idQuad);
@@ -146,13 +152,13 @@ DBGraph.prototype.divideQuad = function(record, idQuad){
 };
 
 DBGraph.prototype.delete = function(id){
-	if(id === null){
+	if(id === undefined){
 		id = 0;
 	}
-	this.db.get('graph', id).done(function(r){
-		if(r.p !== null){
+	this.db.get('graph', id.toString()).done(function(r){
+		if(r.p !== undefined){
 			for(var idNode in r.p){
-				this.db.clear('graph', idNode);
+				this.db.clear('graph', idNode.toString());
 			}
 		}else{
 			this.delete(r.NW);
@@ -160,7 +166,7 @@ DBGraph.prototype.delete = function(id){
 			this.delete(r.SW);
 			this.delete(r.SE);
 		}
-		this.db.clear('graph', id);
+		this.db.clear('graph', id.toString());
 	});
 };
 
@@ -169,14 +175,14 @@ DBGraph.prototype.deleteAll = function(){
 };
 
 DBGraph.prototype.searchNode = function(coord, idQuad){
-	if(idQuad === null){
+	if(idQuad === undefined){
 		idQuad = 0;
 	}
 
-	this.db.get('graph', idQuad).always(function(record) {
+	this.db.get('graph', idQuad.toString()).always(function(record) {
 		var r = record;
 		var result = null;
-		if(r.p === null){
+		if(r.p === undefined){
 			if(Math.abs(coord[0]) < Math.abs(r.N) && Math.abs(coord[0]) > Math.abs((r.N+r.S)/2)){
 				if(Math.abs(coord[1]) < Math.abs(r.E) && Math.abs(coord[0]) > Math.abs((r.E+r.W)/2)){
 					result = this.searchNode(coord, r.NW);
@@ -190,7 +196,7 @@ DBGraph.prototype.searchNode = function(coord, idQuad){
 					result = this.searchNode(coord, r.SE);
 				}
 			}
-			if(result === null){
+			if(result === undefined){
 				var tmp = [];
 				tmp.push(this.searchNode(coord, r.NW));
 				tmp.push(this.searchNode(coord, r.NE));
@@ -218,7 +224,7 @@ DBGraph.prototype.searchNode = function(coord, idQuad){
 				}
 			};
 			for(var i in r.p){
-				this.db.get('graph', i).always(compareDistNode(record));
+				this.db.get('graph', i.toString()).always(compareDistNode(record));
 			}
 			return best;
 		}
@@ -228,14 +234,24 @@ DBGraph.prototype.searchNode = function(coord, idQuad){
 DBGraph.prototype.addLine = function(LineString){
 
 	var idLine = this.NextKey++;
-	this.db.add('graph', LineString, idLine);
+	this.db.add('graph', LineString, idLine.toString());
 
 
 	for(var coor in LineString.geometry.coordinates){
-		var node;
+		var node = {
+			'geometry' : {
+				'type' : 'point',
+				'coordinates' : coor,
+				'idLine' : idLine
+			}
+		};
+		/*
+		var node = 0;
+		node.geometry = 0;
 		node.geometry.type = 'point';
 		node.geometry.coordinates = coor;
 		node.geometry.idLine = idLine;
+		*/
 		this.addNode(node);
 	}
 };
