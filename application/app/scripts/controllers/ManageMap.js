@@ -6,10 +6,11 @@ angular.module('app')
 		$scope.DBGraph = DBGraph;
 
 		$scope.hide = true;
-		$scope.urlServer = 'http://depot.pfe.local/out/';
-		$scope.importState= "";
-		$scope.step = "";
-		$scope.size = "";
+		// $scope.urlServer = 'http://depot.pfe.local/out/';
+		$scope.urlServer = 'http://172.25.15.81/out/';
+		$scope.importState= '';
+		$scope.step = '';
+		$scope.size = '';
 
 		$log.debug('ManageMapCtrl loaded');
 
@@ -22,27 +23,26 @@ angular.module('app')
 				$scope.hide = false;
 				
 			}).error(function(data, status) {
-				$scope.success=data || 'request failed';
+				$scope.success=(data + ',' + status) || 'request failed';
 			});
 		};
 		$scope.select = function(){
 			$scope.importState = 'Downloading';
-			$http.get($scope.urlServer + $scope.selected + '.json').success(function(data, status) {
+			$http.get($scope.urlServer + $scope.selected + '.json').success(function(data) {
 				var step = {value : 0}; // object for passing by reference
-				var size = 	data.features.length;
+				var size = data.features.length;
 
 				$scope.importState = 'Importing : ';
 				$scope.step = step;
 				$scope.size = ' / '+size;
 
 				for (var i = 0; i <= size; i++) {
-					DBGraph.addFast(data.features[i], step);
-				};
+					// DBGraph.addFast(data.features[i], step, i);
+					DBGraph.add(data.features[i]);
+				}
 					
 			}).error(function() {
 				$scope.importState='Fail to Download area data';
 			});
-
-			
-		}
+		};
 	}]);
