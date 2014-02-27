@@ -27,17 +27,16 @@ script for importation of graph into GEOJson format
 
 based on [osmosis](http://wiki.openstreetmap.org/wiki/Osmosis), [osmtogeojson](https://github.com/tyrasd/osmtogeojson) et [merge-geojsons](https://gist.github.com/migurski/3759608)
 
-broken right now because doesn't support more than 60Mo of data.
 
 ### Use
 
 ####prerequisite (for now)
 
- * zsh
  * nodejs
  * npm
  * osmosis
  * curl
+ * make
 
 ####install dependency
 
