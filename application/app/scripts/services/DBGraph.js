@@ -6,19 +6,31 @@
 // constructor
 var DBGraph = function() {
 
-	this.db = new ydn.db.Storage('graph');
-	this.db.put('graph', {}, '0');
-	this.db.count('graph').done(function(x) {
+	this.db = new ydn.db.Storage('DBGraph');
+
+	this.NextKeyIndex = 1;
+	this.db.put('index', {}, '0');
+	this.db.count('index').done(function(x) {
 		if(x > 1){
 			this.addBaseIndex();
-			this.NextKey = 1;
+			this.NextKeyIndex = 1;
 		}else{
-			this.NextKey = x;
+			this.NextKeyIndex = x;
 		}
 	}).fail(function(){
 		this.addBaseIndex();
 		this.NextKey = 1;
 	});
+
+	this.db.put('node', {}, '0');
+	this.db.count('node').done(function(x) {
+		if(x >= 1){
+			this.NextKey = 1;
+		}else{
+			this.NextKey = x;
+		}
+	});
+	this.db.put('line', {}, '0');
 };
 
 DBGraph.prototype.threshold = 10;
@@ -49,18 +61,17 @@ DBGraph.prototype.add = function(thing){
 	}
 };
 
-var NextKey = 0;
-DBGraph.prototype.addFast = function(thing, step, id){
-	if(this.NextKey === undefined){
-		this.NextKey = 0;
-	}
-	localforage.setItem(id.toString(), thing, function(result) {
-		NextKey++;
-		step.value++;
-		console.log(step.value);
-		console.log(result);
-	});
-};
+// var NextKey = 0;
+// DBGraph.prototype.addFast = function(thing, step, id){
+// 	if(this.NextKey === undefined){
+// 		this.NextKey = 0;
+// 	}
+// 	localforage.setItem(id.toString(), thing, function() {
+// 		NextKey++;
+// 		step.value++;
+// 		console.log(step.value);
+// 	});
+// };
 
 DBGraph.prototype.addNode = function(node, idQuad) {
 	// root of the quadtree
@@ -207,7 +218,6 @@ DBGraph.prototype.searchNode = function(coord, idQuad){
 						result = row;
 					}
 				}
-
 			}
 			return result;
 		}else{// leaf

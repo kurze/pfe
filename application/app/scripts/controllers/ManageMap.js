@@ -15,7 +15,7 @@ angular.module('app')
 		$log.debug('ManageMapCtrl loaded');
 
 		$scope.loadList = function(){
-			$http.get($scope.urlServer).success(function(data, status) {
+			$http.get($scope.urlServer + 'index.json').success(function(data, status) {
 
 				$log.debug('success : ' + status);
 				$log.debug('ListArea : ' + data.area);
