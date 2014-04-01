@@ -9,7 +9,6 @@
     "sass-bootstrap": "~3.0.2",
     "angular-resource": "1.2.6",
     "angular-route": "1.2.6",
-    "ydn-db": "0.8.12",
     "localforage": ""
   },
   "devDependencies": {

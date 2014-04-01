@@ -6,8 +6,7 @@ angular.module('app')
 		$scope.DBGraph = DBGraph;
 
 		$scope.hide = true;
-		// $scope.urlServer = 'http://depot.pfe.local/out/';
-		$scope.urlServer = 'http://172.25.15.81/out/';
+		$scope.urlServer = 'http://depot.pfe.local/out/';
 		$scope.importState= '';
 		$scope.step = '';
 		$scope.size = '';
@@ -28,19 +27,28 @@ angular.module('app')
 		};
 		$scope.select = function(){
 			$scope.importState = 'Downloading';
+			$log.info('launch Download : ' + $scope.selected);
 			$http.get($scope.urlServer + $scope.selected + '.json').success(function(data) {
 				var step = {value : 0}; // object for passing by reference
 				var size = data.features.length;
+				$log.info(+ $scope.selected + ' downloaded successfully');
 
 				$scope.importState = 'Importing : ';
 				$scope.step = step;
 				$scope.size = ' / '+size;
 
-				for (var i = 0; i <= size; i++) {
-					// DBGraph.addFast(data.features[i], step, i);
-					DBGraph.add(data.features[i]);
-				}
-					
+				var i = 0;
+				var saveNextItem = null;
+				saveNextItem = function(){
+					$log.info('saveNextItem '+i);
+					if(i < size){
+						$log.debug(data.features[i]);
+						DBGraph.add(data.features[i++], saveNextItem);
+					}else{
+						DBGraph.saveNextKey();
+					}
+				};
+				saveNextItem();
 			}).error(function() {
 				$scope.importState='Fail to Download area data';
 			});
