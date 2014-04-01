@@ -3,5 +3,7 @@
 */.tmp
 */.sass-cache
 */app/bower_components
+batch/merge-geojsons.py
 batch/out
 batch/tmp
+*/*.log
