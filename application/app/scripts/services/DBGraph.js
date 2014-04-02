@@ -1,8 +1,8 @@
 'use strict';
 
-var DBGraph = function() {
+var DBGraph = function(GeoHash) {
 
-	// this.NextKey=JSON.parse(''id' : 0');
+	this.GeoHash = GeoHash;
 	this.NextKey = 0;
 	localforage.getItem('NextKey').then($.proxy(function(value){
 		if(value === null){
@@ -30,7 +30,7 @@ var DBGraph = function() {
 
 };
 
-DBGraph.prototype.saveNextKey = function(){
+DBGraph.prototype.saveNextKeyState = function(){
 	localforage.setItem('NextKey',this.NextKey.toString());
 };
 
@@ -82,7 +82,8 @@ DBGraph.prototype._addNode = function(nodeToAdd, idQuad, callback) {
 		// leaf not full
 		}else if(record.p.length <= this.threshold){
 
-			var idNode = this.NextKey++;
+			// var idNode = this.NextKey++;
+			var idNode = this.GeoHash.encode(nodeToAdd.geometry.coordinates);
 			localforage.setItem(idNode.toString(), JSON.stringify(nodeToAdd));
 			record.p.push(idNode);
 			localforage.setItem(idQuad.toString(), JSON.stringify(record));
@@ -270,4 +271,4 @@ DBGraph.prototype.searchNodeInTree = function(coord, idQuad){
 };
 
 /// attache engine to the app as a service
-angular.module('app').service('DBGraph', DBGraph);
+angular.module('app').service('DBGraph', ['GeoHash', DBGraph]);

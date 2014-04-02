@@ -45,7 +45,7 @@ angular.module('app')
 						$log.debug(data.features[i]);
 						DBGraph.add(data.features[i++], saveNextItem);
 					}else{
-						DBGraph.saveNextKey();
+						DBGraph.saveNextKeyState();
 					}
 				};
 				saveNextItem();
