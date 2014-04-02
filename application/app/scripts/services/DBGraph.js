@@ -27,11 +27,73 @@ var DBGraph = function(GeoHash) {
 		this.NextKey = parseInt(value);
 	}, this));
 	this.threshold=10;
+	this.computeGraph = {};
 
 };
 
-DBGraph.prototype.saveNextKeyState = function(){
+DBGraph.prototype.saveState = function(){
 	localforage.setItem('NextKey',this.NextKey.toString());
+	localforage.setItem('computeGraph', JSON.stringify(this.computeGraph));
+	console.log(this.computeGraph);
+};
+
+DBGraph.prototype.addLineToComputeGraph = function(line){
+	// for(var i = o; i < LineString.geometry.coordinates.length; i++){
+	var nbNode = line.geometry.coordinates.length;
+	var hashStart = this.GeoHash.encode(line.geometry.coordinates[0]);
+	var hashEnd = this.GeoHash.encode(line.geometry.coordinates[nbNode-1]);
+	var dist = this.calcLineLength(line);
+
+	if(!this.computeGraph[hashStart]){
+		this.computeGraph[hashStart] = [];
+	}
+	this.computeGraph[hashStart].push(
+		{
+			dir : hashEnd,
+			dist : dist
+		}
+	);
+
+	if(!this.computeGraph[hashEnd]){
+		this.computeGraph[hashEnd] = [];
+	}
+	this.computeGraph[hashEnd].push(
+		{
+			dir : hashStart,
+			dist : dist
+		}
+	);
+
+};
+
+function deg2rad(deg) {
+	return deg * (Math.PI/180);
+}
+
+DBGraph.prototype.calcLength = function(start, end){
+	var lat1 = start[0];
+	var lon1 = start[1];
+	var lat2 = end[0];
+	var lon2 = end[1];
+
+	var R = 6371; // Radius of the earth in km
+	var dLat = deg2rad(lat2-lat1);  // deg2rad below
+	var dLon = deg2rad(lon2-lon1);
+	var a =
+		Math.sin(dLat/2) * Math.sin(dLat/2) +
+		Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+		Math.sin(dLon/2) * Math.sin(dLon/2);
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	var d = R * c; // Distance in km
+	return d;
+};
+
+DBGraph.prototype.calcLineLength = function(line){
+	var dist = 0;
+	for(var i = 1; i < line.geometry.coordinates.length; i++){
+		dist += this.calcLength(line.geometry.coordinates[i-1], line.geometry.coordinates[i]);
+	}
+	return dist;
 };
 
 DBGraph.prototype.add = function(thing, callback){
@@ -40,6 +102,7 @@ DBGraph.prototype.add = function(thing, callback){
 		this.addNode(thing, callback);
 	}else if(thing.geometry.type === 'LineString'){
 		this.addLine(thing, callback);
+		this.addLineToComputeGraph(thing);
 	}else{
 		if(callback !== null) {
 			callback();
@@ -49,42 +112,47 @@ DBGraph.prototype.add = function(thing, callback){
 
 DBGraph.prototype.cleanThing = function(thing){
 	delete(thing.properties);
+	delete(thing.type);
+	delete(thing.id);
 	return thing;
 };
 
 DBGraph.prototype.addNode = function(node, callback) {
-	this._addNode(node, 'rootQuadTree', callback);
+	this._addNode(node, 'rootQuadTree', false, callback);
 };
 
-DBGraph.prototype.chooseBranch = function(treeNode, nodeToAdd, callback){
+DBGraph.prototype.chooseBranch = function(treeNode, nodeToAdd, move, callback){
 	if(nodeToAdd.geometry.coordinates[0] > (treeNode.N+treeNode.S)/2 ){
 		if(nodeToAdd.geometry.coordinates[1] > (treeNode.W+treeNode.E)/2 ){
-			this._addNode(nodeToAdd, treeNode.NW, callback);
+			this._addNode(nodeToAdd, treeNode.NW, move, callback);
 		}else{
-			this._addNode(nodeToAdd, treeNode.NE, callback);
+			this._addNode(nodeToAdd, treeNode.NE, move, callback);
 		}
 	}else{
 		if(nodeToAdd.geometry.coordinates[1] > (treeNode.W+treeNode.E)/2 ){
-			this._addNode(nodeToAdd, treeNode.SW, callback);
+			this._addNode(nodeToAdd, treeNode.SW, move, callback);
 		}else{
-			this._addNode(nodeToAdd, treeNode.SE, callback);
+			this._addNode(nodeToAdd, treeNode.SE, move, callback);
 		}
 	}
 };
 
-DBGraph.prototype._addNode = function(nodeToAdd, idQuad, callback) {
+DBGraph.prototype._addNode = function(nodeToAdd, idQuad, move, callback) {
 	localforage.getItem(idQuad.toString()).then($.proxy(function(record){
 		record = JSON.parse(record);
 		// current node of the tree is not a leaf, continue to move down
 		if(record.p === undefined){
-			this.chooseBranch(record, nodeToAdd, callback);
+			this.chooseBranch(record, nodeToAdd, move, callback);
 
 		// leaf not full
 		}else if(record.p.length <= this.threshold){
 
 			// var idNode = this.NextKey++;
 			var idNode = this.GeoHash.encode(nodeToAdd.geometry.coordinates);
-			localforage.setItem(idNode.toString(), JSON.stringify(nodeToAdd));
+			if(!move){
+
+				localforage.setItem(idNode.toString(), JSON.stringify(nodeToAdd));
+			}
 			record.p.push(idNode);
 			localforage.setItem(idQuad.toString(), JSON.stringify(record));
 			if(callback !== null){
@@ -94,7 +162,7 @@ DBGraph.prototype._addNode = function(nodeToAdd, idQuad, callback) {
 		// leaf full => divide it in 4 parts
 		}else{
 			this.divideQuad(record, idQuad, $.proxy(function(){
-				this._addNode(nodeToAdd, idQuad, callback);
+				this._addNode(nodeToAdd, idQuad, false, callback);
 			}, this));
 		}
 	}, this));
@@ -185,8 +253,8 @@ DBGraph.prototype.divideQuad = function(record, idQuad, callback){
 
 			localforage.getItem(NodeToMove[i].toString()).then($.proxy(function(item){
 				item = JSON.parse(item);
-				localforage.removeItem(NodeToMove[i]);
-				this._addNode(item, idQuad, addNextNode);
+				// localforage.removeItem(NodeToMove[i]);
+				this._addNode(item, idQuad, true, addNextNode);
 				i++;
 
 			}, this));
