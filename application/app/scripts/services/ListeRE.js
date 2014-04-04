@@ -32,22 +32,22 @@ ListeRenderEngine.prototype.selected.other = null;
 ListeRenderEngine.prototype.getItem = function(liste, i) {
 	if(arguments.length === 1){
 		switch(liste){
-			case 'video':
-				return this.liste.video;
-			case 'audio':
-				return this.liste.audio;
-			default:
-				return this.liste.other;
+		case 'video':
+			return this.liste.video;
+		case 'audio':
+			return this.liste.audio;
+		default:
+			return this.liste.other;
 		}
 	}
 	else if(arguments.length === 2){
 		switch(liste){
-			case 'video':
-				return this.liste.video[i];
-			case 'audio':
-				return this.liste.audio[i];
-			default:
-				return this.liste.other[i];
+		case 'video':
+			return this.liste.video[i];
+		case 'audio':
+			return this.liste.audio[i];
+		default:
+			return this.liste.other[i];
 		}
 	}
 	else{
@@ -58,12 +58,12 @@ ListeRenderEngine.prototype.getItem = function(liste, i) {
 ListeRenderEngine.prototype.getLength = function(liste) {
 	if(arguments.length === 1){
 		switch(liste){
-			case 'video':
-				return this.liste.video.length;
-			case 'audio':
-				return this.liste.audio.length;
-			default:
-				return this.liste.other.length;
+		case 'video':
+			return this.liste.video.length;
+		case 'audio':
+			return this.liste.audio.length;
+		default:
+			return this.liste.other.length;
 		}
 	}else{
 		return this.liste.other.concat(this.liste.audio, this.liste.video);

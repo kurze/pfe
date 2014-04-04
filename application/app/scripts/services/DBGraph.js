@@ -24,7 +24,7 @@ var DBGraph = function(GeoHash) {
 			localforage.setItem('rootQuadTree', JSON.stringify(root));
 			console.log('DBGraph getEnd : ', JSON.stringify(root));
 		}
-		this.NextKey = parseInt(value);
+		this.NextKey = parseInt(value, 10);
 	}, this));
 	this.threshold=10;
 	this.computeGraph = {};

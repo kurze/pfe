@@ -88,7 +88,7 @@ GeoHash.prototype.encode = function(args) {
  * @return {Array.<number>} [minlat, minlon, maxlat, maxlon]
  * @private
  */
-GeoHash.prototype.decodeBbox_ = function(hashString) {
+GeoHash.prototype.decodeBbox = function(hashString) {
 	var islon = true;
 	var maxlat = 90, minlat = -90;
 	var maxlon = 180, minlon = -180;
@@ -131,7 +131,7 @@ GeoHash.prototype.decodeBbox_ = function(hashString) {
  * }}
  */
 GeoHash.prototype.decode = function(hashString) {
-	var bbox = this.decodeBbox_(hashString);
+	var bbox = this.decodeBbox(hashString);
 	var lat = (bbox[0] + bbox[2]) / 2;
 	var lon = (bbox[1] + bbox[3]) / 2;
 	var laterr = bbox[2] - lat;
