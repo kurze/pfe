@@ -112,6 +112,7 @@ run: $(REGION)
 	osmtogeojson tmp/$@.highway-service.osm > tmp/$@.highway-service.json
 	osmtogeojson tmp/$@.highway-track.osm > tmp/$@.highway-track.json
 	python2 merge-geojsons.py tmp/$@.*.json out/$@.json
+	rm tmp/$@*
 
 
 
