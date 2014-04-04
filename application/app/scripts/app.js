@@ -22,6 +22,10 @@ angular.module('app', [
 				templateUrl: 'views/manageMap.html',
 				controller: 'ManageMapCtrl'
 			})
+			.when('/whereYouGo', {
+				templateUrl: 'views/whereYouGo.html',
+				controller: 'WhereYouGoCtrl'
+			})
 			.otherwise({
 				redirectTo: '/'
 			});
