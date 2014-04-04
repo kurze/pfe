@@ -12,7 +12,7 @@
 	<div class="lead row">
 		<div class="col-md-4" ng-repeat="mode in ['video', 'audio', 'other']">
 			<h3>{{mode}}</h3>
-			<select ng-model="selected[mode]" ng-options="RE.getName() for RE in listRenderEngine[mode]" ng-change="change(mode)">
+			<select ng-model="selected[mode]" ng-options="RE.getName() for RE in listRenderEngine[mode]" ng-change="change(mode)" class="form-control">
 				 <option value="">none</option>
 			</select>
 		</div>
@@ -25,6 +25,7 @@
 			<li>mode : {{selected[mode].getMode()}}</li>
 		</ul>
 	</div>
+	<a class="btn btn-default btn-block" href="#">Return</a>
 </div>
 
 <div class="footer">

@@ -10,7 +10,7 @@
 <div class="jumbotron">
   <h1>Choose the compute Engine</h1>
   <p class="lead">
-    <select ng-model="selected" ng-options="CE.getName() for CE in listComputeEngine" ng-change="change()">
+    <select ng-model="selected" ng-options="CE.getName() for CE in listComputeEngine" ng-change="change()" class="form-control">
        <!--<option value="">{{CE.getName()}} - {{CE.getVersion()}}</option>-->
     </select>
   </p>
@@ -20,6 +20,7 @@
     <li>id : {{selected.getId()}}</li>
     <li>mode : {{selected.getMode()}}</li>
   </ul>
+  <a class="btn btn-default btn-block" href="#">Return</a>
 </div>
 
 <div class="footer">
