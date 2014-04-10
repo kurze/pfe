@@ -29,7 +29,7 @@ angular.module('app')
 			$scope.importState = 'Downloading';
 			$log.info('launch Download : ' + $scope.selected);
 			$http.get($scope.urlServer + $scope.selected + '.json').success(function(data) {
-				var step = {value : 0}; // object for passing by reference
+				var step = 0;
 				var size = data.features.length;
 				$log.info(+ $scope.selected + ' downloaded successfully');
 
@@ -40,12 +40,19 @@ angular.module('app')
 				var i = 0;
 				var saveNextItem = null;
 				saveNextItem = function(){
-					$log.info('saveNextItem '+i);
 					if(i < size){
-						$log.debug(data.features[i]);
+						$log.info('saveNextItem '+i);
+						// $scope.$apply(function(){
+						$scope.step = i;
+						// });
 						DBGraph.add(data.features[i++], saveNextItem);
 					}else{
 						DBGraph.saveState();
+						$scope.$apply(function(){
+							$scope.importState = 'Complete importation of '+size+' elements';
+							$scope.step = '';
+							$scope.size = '';
+						});
 					}
 				};
 				saveNextItem();
