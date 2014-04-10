@@ -74,6 +74,6 @@ angular.module('app')
 	.service('ListeRenderEngine', [
 		'$log',
 		'REHelloWorld',
-		// ^-- add new Compute Engine here --^
+		// ^-- add new Render Engine here --^
 		ListeRenderEngine
 	]);

@@ -38,7 +38,6 @@ DBGraph.prototype.saveState = function(){
 };
 
 DBGraph.prototype.addLineToComputeGraph = function(line){
-	// for(var i = o; i < LineString.geometry.coordinates.length; i++){
 	var nbNode = line.geometry.coordinates.length;
 	var hashStart = this.GeoHash.encode(line.geometry.coordinates[0]);
 	var hashEnd = this.GeoHash.encode(line.geometry.coordinates[nbNode-1]);
