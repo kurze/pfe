@@ -1,0 +1,34 @@
+<div class="header">
+	<ul class="nav nav-pills pull-right">
+		<li><a ng-href="#">Home</a></li>
+		<li><a ng-href="#">About</a></li>
+		<li><a ng-href="#">Contact</a></li>
+	</ul>
+	<h3 class="text-muted">html5 navigation app for cyclist</h3>
+</div>
+
+<div class="jumbotron">
+	<p>Compute Engine : {{CE.getName()}}</p>
+	<p>mode : {{CE.getMode()}}</p>
+	<p>
+		<a ng-click="compute()" class="btn btn-primary btn-block" ng-disabled="forbidCompute">Compute Path</a>
+	<p>
+	<p ng-hide="hideProgress">{{progress}}</p>
+	<div ng-hide="hideWarning">
+		<p>{{warning}}</p>
+		<p><a class="btn btn-default btn-block" href="#">Return</a></p>
+	</div>
+	<div ng-hide="hideResultCompute">
+		<p>{{resultCompute}}</p>
+	</div>
+	<div ng-hide="hideREVideo">
+		{{REVideo}}
+	</div>
+	<div ng-hide="hideREAudio">
+		{{REAudio}}
+	</div>
+</div>
+
+<div class="footer">
+	<p>♥</p>
+</div>

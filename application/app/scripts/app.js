@@ -26,6 +26,10 @@ angular.module('app', [
 				templateUrl: 'views/whereYouGo.html',
 				controller: 'WhereYouGoCtrl'
 			})
+			.when('/go', {
+				templateUrl: 'views/go.html',
+				controller: 'GoCtrl'
+			})
 			.otherwise({
 				redirectTo: '/'
 			});
