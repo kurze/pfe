@@ -99,7 +99,7 @@ DBGraph.prototype.calcLineLength = function(line){
 DBGraph.prototype.add = function(thing, callback){
 	thing = this.cleanThing(thing);
 	if(thing.geometry.type === 'Point'){
-		this.addNode(thing, callback);
+		// this.addNode(thing, callback);
 	}else if(thing.geometry.type === 'LineString'){
 		this.addLine(thing, callback);
 		this.addLineToComputeGraph(thing);
