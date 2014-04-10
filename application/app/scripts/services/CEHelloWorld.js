@@ -24,5 +24,20 @@ CEHelloWorld.prototype.getMode = function() {
 	return 'off-line';
 };
 
+CEHelloWorld.prototype.computePath = function(source, destination, callbackProgress, callbackFinal) {
+	var progress = 0;
+	var path = Object;
+	var loop = function(){
+		progress++;
+		callbackProgress(progress+'%');
+		if(progress >= 100){
+			callbackFinal(path);
+		}else{
+			setTimeout(loop, 100);
+		}
+	};
+	loop();
+};
+
 /// attache engine to the app as a service
 angular.module('app').service('CEHelloWorld', CEHelloWorld);
