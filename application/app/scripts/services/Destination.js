@@ -18,6 +18,11 @@ Destination.prototype.getLon = function(){
 	return this.longitude;
 };
 
+Destination.prototype.get = function(){
+	this.$log.debug('Destination : get', this.longitude, this.latitude);
+	return [this.longitude, this.latitude];
+};
+
 Destination.prototype.setLat = function(newValue){
 	this.$log.debug('Destination : setLat',  this.latitude, ' -> ', newValue);
 	this.latitude = newValue;
