@@ -7,27 +7,29 @@ angular.module('app')
 		$scope.position = null;
 		$scope.warning = '';
 
-
 		$scope.forbidCompute = true;
 		$scope.geolocationOK = false;
 		$scope.CESelected = false;
 		// $scope.RESelected = false;
 		$scope.destinationSelected = false;
+		var uFCnbCall = 0;
 		function updateForbidCompute(){
 			$scope.forbidCompute =
 				!$scope.geolocationOK ||
 				!$scope.CESelected ||
 				// !$scope.RESelected &&
 				!$scope.destinationSelected;
-			console.log($scope.forbidCompute);
-			$scope.$apply();
+			// console.log($scope.forbidCompute);
+			if(uFCnbCall++ > 0){
+				$scope.$apply();
+			}
 		}
 
 		function verifyComputable(){
 			if(ListeCE.selected === null){
 				$scope.hideWarning = false;
 				$scope.CESelected = false;
-				$scope.warning += 'Choose a compute engine first<br/>';
+				$scope.warning += 'Choose a compute engine first';
 			}else{
 				$scope.CESelected = true;
 			}
@@ -50,19 +52,29 @@ angular.module('app')
 		verifyComputable();
 
 		function geoSuccess(position) {
+			// $scope.position = position;
 			$scope.position = position;
 			$scope.geolocationOK = true;
+			$scope.warning = '';
 			updateForbidCompute();
-			console.log(position);
+			// console.log(position);
 		}
 
 		function geoError() {
 			$scope.hideWarning = false;
-			$scope.warning += 'Sorry, no position available.<br/>';
+			$scope.warning += 'Sorry, no position available.';
 			$scope.geolocationOK = false;
 			updateForbidCompute();
 		}
-		var wpid = navigator.geolocation.watchPosition(geoSuccess, geoError);
+
+		var geoOptions = {
+			// documentation @ https://developer.mozilla.org/en-US/docs/Web/API/PositionOptions
+			enableHighAccuracy : false,
+			maximumAge : 3000,
+			timeout : 10000
+		};
+
+		navigator.geolocation.watchPosition(geoSuccess, geoError, geoOptions);
 
 		var callBackComputeProgressCallNumber=0;
 		var callBackComputeProgress = function(progress){
@@ -76,12 +88,13 @@ angular.module('app')
 		
 		var callBackComputeFinal = $.proxy(function(path){
 			this.path = path;
+			$scope.progress = 'complete';
 		}, this);
 
 		$scope.compute = function(){
 			$scope.hideProgress = false;
 			ListeCE.selected.computePath(
-				[0, 0],
+				$scope.position,
 				Destination.get(),
 				callBackComputeProgress,
 				callBackComputeFinal
