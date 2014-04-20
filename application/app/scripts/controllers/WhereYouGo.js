@@ -4,8 +4,8 @@ angular.module('app')
 	.controller('WhereYouGoCtrl', ['$scope', '$log', 'Destination', function ($scope, $log, Destination) {
 		// $scope.$log = $log;
 		$log.debug('WhereYouGoCtrl loaded');
-		$scope.lon = '';
-		$scope.lat = '';
+		$scope.lat = 47.38974;
+		$scope.lon = 0.68889;
 
 
 		$scope.saveCoor = function(){
