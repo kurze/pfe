@@ -40,7 +40,7 @@ GeoHash.prototype.encode = function(args) {
 	// NOTE: asm annotation for double and int.
 	var lon = +args[0];
 	var lat = +args[1];
-	var numberOfChars = (args[2] || 12) | 0;
+	var numberOfChars = (args[2] || 9) | 0;
 	var chars = [];
 
 	var maxlat = 90;
