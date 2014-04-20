@@ -94,7 +94,7 @@ angular.module('app')
 		$scope.compute = function(){
 			$scope.hideProgress = false;
 			ListeCE.selected.computePath(
-				$scope.position,
+				[$scope.position.coords.longitude, $scope.position.coords.latitude],
 				Destination.get(),
 				callBackComputeProgress,
 				callBackComputeFinal

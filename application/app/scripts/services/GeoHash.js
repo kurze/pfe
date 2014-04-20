@@ -23,6 +23,7 @@ angular.module('app').service('GeoHash', GeoHash);
  */
 GeoHash.prototype.BASE32_CODES = '0123456789bcdefghjkmnpqrstuvwxyz';
 
+GeoHash.prototype.PRECISION = 12;
 
 /**
  * Encode coordinate into hash.
@@ -40,7 +41,7 @@ GeoHash.prototype.encode = function(args) {
 	// NOTE: asm annotation for double and int.
 	var lon = +args[0];
 	var lat = +args[1];
-	var numberOfChars = (args[2] || 9) | 0;
+	var numberOfChars = (args[2] || this.PRECISION) | 0;
 	var chars = [];
 
 	var maxlat = 90;

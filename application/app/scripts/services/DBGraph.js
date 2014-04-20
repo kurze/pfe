@@ -32,16 +32,36 @@ var DBGraph = function(GeoHash) {
 		}
 		this.NextKey = parseInt(value, 10);
 	}, this));
+
 	this.threshold=THRESHOLD;
 	this.computeGraph = {};
+	this.graph = {};
+
 	localforage.getItem(KEY_COMPUTE_GRAPH).then($.proxy(function(record){
 		this.computeGraph = JSON.parse(record);
 		if(this.computeGraph === null){
 			this.computeGraph = {};
 		}
-		console.log(this.computeGraph);
+	}, this));
+	localforage.getItem(KEY_GRAPH).then($.proxy(function(record){
+		this.graph = JSON.parse(record);
+		if(this.graph === null){
+			this.graph = {};
+		}
 	}, this));
 
+	// implement startsWith if not exist
+	if (!String.prototype.startsWith) {
+		Object.defineProperty(String.prototype, 'startsWith', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function (searchString, position) {
+				position = position || 0;
+				return this.indexOf(searchString, position) === position;
+			}
+		});
+	}
 };
 
 DBGraph.prototype.count = function(graph){
@@ -104,17 +124,18 @@ DBGraph.prototype.simplify = function(graph){
 DBGraph.prototype.saveState = function(){
 	localforage.setItem(KEY_NEXT_KEY,this.NextKey.toString());
 	
-	this.count(this.computeGraph);
-	localforage.setItem(KEY_GRAPH, JSON.stringify(this.computeGraph));
-
+	this.count(this.graph);
+	localforage.setItem(KEY_GRAPH, JSON.stringify(this.graph));
+	console.log(this.graph);
 	
-	this.computeGraph = this.simplify(this.computeGraph);
+	this.computeGraph = this.simplify(this.graph);
 
 	this.count(this.computeGraph);
 	localforage.setItem(KEY_COMPUTE_GRAPH, JSON.stringify(this.computeGraph));
+	console.log(this.computeGraph);
 };
 
-DBGraph.prototype.addLineToComputeGraph = function(line){
+DBGraph.prototype.addLineToGraph = function(line){
 	for(var i=1; i < line.geometry.coordinates.length; i++){
 		var end = line.geometry.coordinates[i-1];
 		var start = line.geometry.coordinates[i];
@@ -125,17 +146,17 @@ DBGraph.prototype.addLineToComputeGraph = function(line){
 		
 		var dist = this.calcLength(start, end);
 
-		if(!this.computeGraph[hashStart]){
-			this.computeGraph[hashStart] = {};
+		if(!this.graph[hashStart]){
+			this.graph[hashStart] = {};
 		}
-		this.computeGraph[hashStart][hashEnd] = {};
-		this.computeGraph[hashStart][hashEnd].dist = dist;
+		this.graph[hashStart][hashEnd] = {};
+		this.graph[hashStart][hashEnd].dist = dist;
 
-		if(!this.computeGraph[hashEnd]){
-			this.computeGraph[hashEnd] = {};
+		if(!this.graph[hashEnd]){
+			this.graph[hashEnd] = {};
 		}
-		this.computeGraph[hashEnd][hashStart] = {};
-		this.computeGraph[hashEnd][hashStart].dist = dist;
+		this.graph[hashEnd][hashStart] = {};
+		this.graph[hashEnd][hashStart].dist = dist;
 		// console.log(start, end, hashStart, hashEnd);
 	}
 };
@@ -176,7 +197,7 @@ DBGraph.prototype.add = function(thing, callback){
 		// this.addNode(thing, callback);
 	}else if(thing.geometry.type === 'LineString'){
 		// this.addLine(thing, callback);
-		this.addLineToComputeGraph(thing);
+		this.addLineToGraph(thing);
 	}
 	if(callback !== null && callback !== undefined){
 		callback();
@@ -340,18 +361,57 @@ DBGraph.prototype.divideQuad = function(record, idQuad, callback){
 
 DBGraph.prototype.GetGraph = function(){
 	return new Promise($.proxy(function(resolve) {
-		localforage.getItem(KEY_GRAPH).then(function(record){
-			resolve(record);
-		});
+		if(this.graph === {}){
+			localforage.getItem(KEY_GRAPH).then(function(record){
+				record = JSON.parse(record);
+				this.graph = record;
+				resolve(record);
+			});
+		}else{
+			resolve(this.graph);
+		}
 	}));
 };
 
 DBGraph.prototype.GetComputeGraph = function(){
 	return new Promise($.proxy(function(resolve) {
-		localforage.getItem(KEY_COMPUTE_GRAPH).then(function(record){
-			resolve(record);
-		});
+		if(this.graph === {}){
+			localforage.getItem(KEY_COMPUTE_GRAPH).then(function(record){
+				record = JSON.parse(record);
+				this.computeGraph = record;
+				resolve(record);
+			});
+		}else{
+			resolve(this.computeGraph);
+		}
 	}));
+};
+
+DBGraph.prototype.searchNearestNode = function(coord){
+	console.log('searchNearestNode a');
+	this.GetGraph();
+	console.log('searchNearestNode b');
+	var precision  = this.GeoHash.PRECISION;
+	var found = false;
+	var result;
+	while(!found && precision > 0){
+		var argEncode = [
+			coord[0],
+			coord[1],
+			precision--
+		];
+		var hash = this.GeoHash.encode(argEncode);
+		console.log('searchNearestNode c', precision, hash);
+		for(var vertex in this.graph){
+			if(vertex.startsWith(hash)){
+				found = true;
+				result = vertex;
+				break;
+			}
+		}
+	}
+	console.log('searchNearestNode d :', result);
+	return result;
 };
 
 /**

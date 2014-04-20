@@ -32,13 +32,21 @@ CEDijkstra.prototype.computePath = function(source, destination, callbackProgres
 	var path = Object;
 	var graph = Object;
 	
-	var srcGeoHash = this.GeoHash.encode(source);
-	var dstGeoHash = this.GeoHash.encode(destination);
+	console.log('computePath a');
 
 	this.DBGraph.GetGraph().then($.proxy(function(record){
-		graph = JSON.parse(record);
+		console.log('computePath b');
+		graph = record;
 
-		this.dijkstra(graph, srcGeoHash, dstGeoHash, callbackProgress, callbackFinal);
+		console.log(source);
+		source = this.DBGraph.searchNearestNode(source);
+		console.log(source);
+
+		console.log(destination);
+		destination = this.DBGraph.searchNearestNode(destination);
+		console.log(destination);
+
+		this.dijkstra(graph, source, destination, callbackProgress, callbackFinal);
 	}, this));
 };
 
@@ -46,8 +54,6 @@ CEDijkstra.prototype.dijkstra = function(graph, srcGeoHash, dstGeoHash, callback
 	console.log('DIJKSTRA');
 	console.log(srcGeoHash);
 	console.log(dstGeoHash);
-	srcGeoHash = 'mj8n3bmm6';
-	// console.log(graph.length);
 	var i=0;
 	// for(var vertex = 0;  vertex < graph.length; vertex++){
 	for(var vertex in graph){
@@ -123,37 +129,4 @@ CEDijkstra.prototype.dijkstra = function(graph, srcGeoHash, dstGeoHash, callback
 	}
 };
 
-/// attache engine to the app as a service
 angular.module('app').service('CEDijkstra', ['DBGraph', 'GeoHash', CEDijkstra]);
-
-/*
- 1  function Dijkstra(Graph, source):
- 2      for each vertex v in Graph:                                // Initializations
- 3          dist[v]  := infinity ;                                  // Unknown distance function from 
- 4                                                                 // source to v
- 5          previous[v]  := undefined ;                             // Previous node in optimal path
- 6      end for                                                    // from source
- 7      
- 8      dist[source]  := 0 ;                                        // Distance from source to source
- 9      Q := the set of all nodes in Graph ;                       // All nodes in the graph are
-10                                                                 // unoptimized – thus are in Q
-11      while Q is not empty:                                      // The main loop
-12          u := vertex in Q with smallest distance in dist[] ;    // Source node in first case
-13          remove u from Q ;
-14          if dist[u] = infinity:
-15              break ;                                            // all remaining vertices are
-16          end if                                                 // inaccessible from source
-17          
-18          for each neighbor v of u:                              // where v has not yet been 
-19                                                                 // removed from Q.
-20              alt := dist[u] + dist_between(u, v) ;
-21              if alt < dist[v]:                                  // Relax (u,v,a)
-22                  dist[v]  := alt ;
-23                  previous[v]  := u ;
-24                  decrease-key v in Q;                           // Reorder v in the Queue (that is, heapify-down) 
-25              end if
-26          end for
-27      end while
-28      return dist[], previous[];
-29  end function
-//*/
