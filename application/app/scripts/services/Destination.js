@@ -29,7 +29,7 @@ Destination.prototype.setLat = function(newValue){
 };
 
 Destination.prototype.setLon = function(newValue){
-	this.$log.debug('Destination : setLat',  this.longitude, ' -> ', newValue);
+	this.$log.debug('Destination : setLon',  this.longitude, ' -> ', newValue);
 	this.longitude = newValue;
 };
 
