@@ -38,8 +38,8 @@ GeoHash.prototype.BASE32_CODES = '0123456789bcdefghjkmnpqrstuvwxyz';
  */
 GeoHash.prototype.encode = function(args) {
 	// NOTE: asm annotation for double and int.
-	var lat = +args[0];
-	var lon = +args[1];
+	var lon = +args[0];
+	var lat = +args[1];
 	var numberOfChars = (args[2] || 12) | 0;
 	var chars = [];
 
