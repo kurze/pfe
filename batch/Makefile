@@ -118,3 +118,97 @@ run: $(REGION)
 
 .osm.json:
 	osmtogeojson $+ >$@
+
+Tours: tmp/centre.osm.pbf
+	@echo "extract Tours from Centre"
+	@osmosis -q \
+		--rbf tmp/centre.osm.pbf \
+		--bounding-box top=47.4394 left=0.5454 bottom=47.3361 right=0.8149 \
+		--write-pbf tmp/tours.osm.pbf
+	@echo "extract useful info"
+	@osmosis -q \
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=primary \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-primary.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=secondary \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-secondary.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=tertiary \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-tertiary.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=unclassified \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-unclassified.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=primary_link,secondary_link,tertiary_link \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-link.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=road \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-road.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=residential \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-residential.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=service \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-service.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway=track \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-track.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways highway="*" \
+		--tf reject-ways highway=motorway,motorway_link,trunk,trunk_link,bridleway,steps,proposed,construction,raceway,primary,secondary,tertiary,unclassified,primary_link,secondary_link,tertiary_link,road,residential,service,track \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.highway-other.osm \
+		\
+		--rbf tmp/tours.osm.pbf \
+		--tf accept-ways cycleway="*" \
+		--tf reject-relations \
+		--used-node \
+		--write-xml tmp/tours.cycleway.osm
+	@echo "osm to json"
+	osmtogeojson tmp/tours.highway-primary.osm > tmp/tours.highway-primary.json
+	osmtogeojson tmp/tours.highway-secondary.osm > tmp/tours.highway-secondary.json
+	osmtogeojson tmp/tours.highway-tertiary.osm > tmp/tours.highway-tertiary.json
+	osmtogeojson tmp/tours.highway-unclassified.osm > tmp/tours.highway-unclassified.json
+	osmtogeojson tmp/tours.highway-link.osm > tmp/tours.highway-link.json
+	osmtogeojson tmp/tours.highway-road.osm > tmp/tours.highway-road.json
+	osmtogeojson tmp/tours.highway-other.osm > tmp/tours.highway-other.json
+	osmtogeojson tmp/tours.cycleway.osm > tmp/tours.cycleway.json
+	osmtogeojson tmp/tours.highway-residential.osm > tmp/tours.highway-residential.json
+	osmtogeojson tmp/tours.highway-service.osm > tmp/tours.highway-service.json
+	osmtogeojson tmp/tours.highway-track.osm > tmp/tours.highway-track.json
+	@echo "merge"
+	python2 merge-geojsons.py tmp/tours.*.json out/tours.json
+	rm tmp/tours*
+
+
+tmp/centre.osm.pbf:
+	@curl $(URL_START)centre$(URL_END) > tmp/centre.osm.pbf
