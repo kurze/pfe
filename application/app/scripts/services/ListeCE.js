@@ -36,6 +36,7 @@ angular.module('app')
 	.service('ListeComputeEngine', [
 		'$log',
 		'CEHelloWorld',
+		'CEDijkstra',
 		// ^-- add new Compute Engine here --^
 		ListeComputeEngine
 	]);
