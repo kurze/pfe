@@ -58,7 +58,21 @@ angular.module('app')
 						});
 					}
 				};
-				saveNextItem();
+				// saveNextItem();
+				for(i=0; i< size; i++){
+					$scope.step = i;
+					$scope.size = ' / '+size+' ('+((100.0 * i) / size).toFixed(3) +'%)';
+					if(i > 1){
+						$scope.$apply();
+					}
+					DBGraph.add(data.features[i]);
+				}
+				DBGraph.saveState();
+				$scope.$apply(function(){
+					$scope.importState = 'Complete importation of '+size+' elements';
+					$scope.step = '';
+					$scope.size = '';
+				});
 			}).error(function() {
 				$scope.importState='Fail to Download area data';
 			});

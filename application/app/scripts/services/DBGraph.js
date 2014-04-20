@@ -2,6 +2,7 @@
 
 var KEY_NEXT_KEY = 'NextKey';
 var KEY_ROOT_QUAD_TREE = 'rootQuadTree';
+var KEY_GRAPH = 'graph';
 var KEY_COMPUTE_GRAPH = 'computeGraph';
 var THRESHOLD = 64;
 
@@ -33,41 +34,110 @@ var DBGraph = function(GeoHash) {
 	}, this));
 	this.threshold=THRESHOLD;
 	this.computeGraph = {};
+	localforage.getItem(KEY_COMPUTE_GRAPH).then($.proxy(function(record){
+		this.computeGraph = JSON.parse(record);
+		if(this.computeGraph === null){
+			this.computeGraph = {};
+		}
+		console.log(this.computeGraph);
+	}, this));
 
+};
+
+DBGraph.prototype.count = function(graph){
+	var truc = [];
+	var i = 0;
+	for(var vertex in graph){
+		i = 0;
+		/* jshint unused: false */
+		for(var edge in graph[vertex]){
+			i++;
+		}
+		if(!truc[i]){
+			truc[i] = 1;
+		}else{
+			truc[i] = truc[i] + 1;
+		}
+	}
+	console.log(truc);
+};
+
+DBGraph.prototype.simplify = function(graph){
+	var i = 0;
+	for(var vertex in graph){
+		var k=0;
+		/* jshint unused: false */
+		for(var edge in graph[vertex]){
+			k++;
+		}
+		if(k === 2){
+			var dir = [];
+			i = 0;
+			for(var j in graph[vertex]){
+				dir[i++] = j;
+			}
+			if(graph[dir[0]]){
+				if(!graph[dir[0]][dir[1]]){
+					graph[dir[0]][dir[1]] = {};
+					graph[dir[0]][dir[1]].dist =
+							graph[vertex][dir[0]].dist +
+							graph[vertex][dir[1]].dist;
+					delete(graph[dir[0]][vertex]);
+				}
+			}
+
+			if(graph[dir[1]]){
+				if(!graph[dir[1]][dir[0]]){
+					graph[dir[1]][dir[0]] = {};
+					graph[dir[1]][dir[0]].dist =
+							graph[vertex][dir[1]].dist +
+							graph[vertex][dir[0]].dist;
+					delete(graph[dir[1]][vertex]);
+				}
+			}
+			delete(graph[vertex]);
+		}
+	}
+	return graph;
 };
 
 DBGraph.prototype.saveState = function(){
 	localforage.setItem(KEY_NEXT_KEY,this.NextKey.toString());
+	
+	this.count(this.computeGraph);
+	localforage.setItem(KEY_GRAPH, JSON.stringify(this.computeGraph));
+
+	
+	this.computeGraph = this.simplify(this.computeGraph);
+
+	this.count(this.computeGraph);
 	localforage.setItem(KEY_COMPUTE_GRAPH, JSON.stringify(this.computeGraph));
-	console.log(this.computeGraph);
 };
 
 DBGraph.prototype.addLineToComputeGraph = function(line){
-	var nbNode = line.geometry.coordinates.length;
-	var hashStart = this.GeoHash.encode(line.geometry.coordinates[0]);
-	var hashEnd = this.GeoHash.encode(line.geometry.coordinates[nbNode-1]);
-	var dist = this.calcLineLength(line);
+	for(var i=1; i < line.geometry.coordinates.length; i++){
+		var end = line.geometry.coordinates[i-1];
+		var start = line.geometry.coordinates[i];
+		// console.log(end[0]);
+		// console.log(end[1]);
+		var hashEnd = this.GeoHash.encode(end);
+		var hashStart = this.GeoHash.encode(start);
+		
+		var dist = this.calcLength(start, end);
 
-	if(!this.computeGraph[hashStart]){
-		this.computeGraph[hashStart] = [];
-	}
-	this.computeGraph[hashStart].push(
-		{
-			dir : hashEnd,
-			dist : dist
+		if(!this.computeGraph[hashStart]){
+			this.computeGraph[hashStart] = {};
 		}
-	);
+		this.computeGraph[hashStart][hashEnd] = {};
+		this.computeGraph[hashStart][hashEnd].dist = dist;
 
-	if(!this.computeGraph[hashEnd]){
-		this.computeGraph[hashEnd] = [];
-	}
-	this.computeGraph[hashEnd].push(
-		{
-			dir : hashStart,
-			dist : dist
+		if(!this.computeGraph[hashEnd]){
+			this.computeGraph[hashEnd] = {};
 		}
-	);
-
+		this.computeGraph[hashEnd][hashStart] = {};
+		this.computeGraph[hashEnd][hashStart].dist = dist;
+		// console.log(start, end, hashStart, hashEnd);
+	}
 };
 
 function deg2rad(deg) {
@@ -101,16 +171,15 @@ DBGraph.prototype.calcLineLength = function(line){
 };
 
 DBGraph.prototype.add = function(thing, callback){
-	thing = this.cleanThing(thing);
+	//thing = this.cleanThing(thing);
 	if(thing.geometry.type === 'Point'){
 		// this.addNode(thing, callback);
 	}else if(thing.geometry.type === 'LineString'){
-		this.addLine(thing, callback);
+		// this.addLine(thing, callback);
 		this.addLineToComputeGraph(thing);
-	}else{
-		if(callback !== null) {
-			callback();
-		}
+	}
+	if(callback !== null && callback !== undefined){
+		callback();
 	}
 };
 
@@ -159,7 +228,7 @@ DBGraph.prototype._addNode = function(nodeToAdd, idQuad, move, callback) {
 			}
 			record.p.push(idNode);
 			localforage.setItem(idQuad.toString(), JSON.stringify(record));
-			if(callback !== null){
+			if(callback !== null && callback !== undefined){
 				callback();
 			}
 
@@ -192,7 +261,7 @@ DBGraph.prototype.addLine = function(LineString, callback){
 
 			this.addNode(node, saveNextNode);
 		}else{
-			if(callback !== null){
+			if(callback !== null && callback !== undefined){
 				callback();
 			}
 		}
@@ -254,7 +323,6 @@ DBGraph.prototype.divideQuad = function(record, idQuad, callback){
 	var addNextNode = null;
 	addNextNode = $.proxy(function(){
 		if(i < NodeToMove.length){
-
 			localforage.getItem(NodeToMove[i].toString()).then($.proxy(function(item){
 				item = JSON.parse(item);
 				// localforage.removeItem(NodeToMove[i]);
@@ -263,11 +331,27 @@ DBGraph.prototype.divideQuad = function(record, idQuad, callback){
 
 			}, this));
 
-		}else if(callback !== null){
+		}else if(callback !== null && callback !== undefined){
 			callback();
 		}
 	}, this);
 	addNextNode();
+};
+
+DBGraph.prototype.GetGraph = function(){
+	return new Promise($.proxy(function(resolve) {
+		localforage.getItem(KEY_GRAPH).then(function(record){
+			resolve(record);
+		});
+	}));
+};
+
+DBGraph.prototype.GetComputeGraph = function(){
+	return new Promise($.proxy(function(resolve) {
+		localforage.getItem(KEY_COMPUTE_GRAPH).then(function(record){
+			resolve(record);
+		});
+	}));
 };
 
 /**
