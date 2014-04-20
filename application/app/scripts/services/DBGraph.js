@@ -1,14 +1,19 @@
 'use strict';
 
+var KEY_NEXT_KEY = 'NextKey';
+var KEY_ROOT_QUAD_TREE = 'rootQuadTree';
+var KEY_COMPUTE_GRAPH = 'computeGraph';
+var THRESHOLD = 64;
+
 var DBGraph = function(GeoHash) {
 
 	this.GeoHash = GeoHash;
 	this.NextKey = 0;
-	localforage.getItem('NextKey').then($.proxy(function(value){
+	localforage.getItem(KEY_NEXT_KEY).then($.proxy(function(value){
 		if(value === null){
 			console.log('DBGraph NextKey : '+ value);
 			value = 0;
-			localforage.setItem('NextKey',this.NextKey.toString());
+			localforage.setItem(KEY_NEXT_KEY,this.NextKey.toString());
 			// root of the quadtree
 			var root = {
 				N : 90,
@@ -21,19 +26,19 @@ var DBGraph = function(GeoHash) {
 				// SE : 4,
 				p : []
 			};
-			localforage.setItem('rootQuadTree', JSON.stringify(root));
+			localforage.setItem(KEY_ROOT_QUAD_TREE, JSON.stringify(root));
 			console.log('DBGraph getEnd : ', JSON.stringify(root));
 		}
 		this.NextKey = parseInt(value, 10);
 	}, this));
-	this.threshold=10;
+	this.threshold=THRESHOLD;
 	this.computeGraph = {};
 
 };
 
 DBGraph.prototype.saveState = function(){
-	localforage.setItem('NextKey',this.NextKey.toString());
-	localforage.setItem('computeGraph', JSON.stringify(this.computeGraph));
+	localforage.setItem(KEY_NEXT_KEY,this.NextKey.toString());
+	localforage.setItem(KEY_COMPUTE_GRAPH, JSON.stringify(this.computeGraph));
 	console.log(this.computeGraph);
 };
 
@@ -117,7 +122,7 @@ DBGraph.prototype.cleanThing = function(thing){
 };
 
 DBGraph.prototype.addNode = function(node, callback) {
-	this._addNode(node, 'rootQuadTree', false, callback);
+	this._addNode(node, KEY_ROOT_QUAD_TREE, false, callback);
 };
 
 DBGraph.prototype.chooseBranch = function(treeNode, nodeToAdd, move, callback){
@@ -272,7 +277,7 @@ DBGraph.prototype.divideQuad = function(record, idQuad, callback){
  */
 DBGraph.prototype.searchNode = function(coord){
 	return new Promise($.proxy(function(resolve, reject) {
-		this.searchNodeInTree(coord, 'rootQuadTree').then(function(record){
+		this.searchNodeInTree(coord, KEY_ROOT_QUAD_TREE).then(function(record){
 			resolve(record);
 		}, function(err){
 			reject(err);
