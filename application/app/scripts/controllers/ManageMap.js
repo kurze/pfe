@@ -35,16 +35,19 @@ angular.module('app')
 
 				$scope.importState = 'Importing : ';
 				$scope.step = step;
-				$scope.size = ' / '+size;
+				$scope.size = ' / '+size+' ('+((100.0 * step) / size)+'%)';
 
 				var i = 0;
 				var saveNextItem = null;
 				saveNextItem = function(){
 					if(i < size){
-						$log.info('saveNextItem '+i);
-						// $scope.$apply(function(){
+						// $log.info('saveNextItem '+i+' '+data.features[i].geometry.type);
+						
 						$scope.step = i;
-						// });
+						$scope.size = ' / '+size+' ('+((100.0 * i) / size).toFixed(3) +'%)';
+						if(i > 1){
+							$scope.$apply();
+						}
 						DBGraph.add(data.features[i++], saveNextItem);
 					}else{
 						DBGraph.saveState();
