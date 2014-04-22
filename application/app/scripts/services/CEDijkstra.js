@@ -1,5 +1,7 @@
 'use strict';
 
+var EARTH_CIRCUMFERENCE = 40000;
+
 // constructor
 var CEDijkstra = function(DBGraph, GeoHash) {
 	this.DBGraph = DBGraph;
@@ -32,36 +34,33 @@ CEDijkstra.prototype.computePath = function(source, destination, callbackProgres
 	var path = Object;
 	var graph = Object;
 	
-	console.log('computePath a');
+	callbackProgress(0);
 
 	this.DBGraph.GetGraph().then($.proxy(function(record){
-		console.log('computePath b');
+		callbackProgress(1);
 		graph = record;
 
-		console.log(source);
 		source = this.DBGraph.searchNearestNode(source);
-		console.log(source);
-
-		console.log(destination);
 		destination = this.DBGraph.searchNearestNode(destination);
-		console.log(destination);
+
+		callbackProgress(2);
 
 		this.dijkstra(graph, source, destination, callbackProgress, callbackFinal);
 	}, this));
 };
 
 CEDijkstra.prototype.dijkstra = function(graph, srcGeoHash, dstGeoHash, callbackProgress, callbackFinal) {
-	console.log('DIJKSTRA');
-	console.log(srcGeoHash);
-	console.log(dstGeoHash);
+	console.log('DIJKSTRA' ,graph);
 	var i=0;
-	// for(var vertex = 0;  vertex < graph.length; vertex++){
+	var progress = 0;
+ 
 	for(var vertex in graph){
-		// console.log(this.GeoHash.decode(vertex));
-		// i++;
-		graph[vertex].distT = Number.POSITIVE_INFINITY;
-		graph[vertex].prev = null;
-		graph[vertex].visited = false;
+		i++;
+		graph[vertex].dijkstra = {
+			distT : EARTH_CIRCUMFERENCE,
+			prev : null,
+			visited : false
+		};
 		if(vertex === srcGeoHash){
 			console.log('src found ', i);
 
@@ -70,57 +69,54 @@ CEDijkstra.prototype.dijkstra = function(graph, srcGeoHash, dstGeoHash, callback
 		}
 
 	}
+	console.log('after search src & dst', i);
 
-	graph[srcGeoHash].distT = 0;
+	graph[srcGeoHash].dijkstra.distT = 0;
 	var searchNextVertex = function(){
-		console.log('SEARCH------');
-		var	distT = Number.POSITIVE_INFINITY;
+		var	distT = EARTH_CIRCUMFERENCE;
 		var nameV = '';
-		console.log('a', i++);
 		for(var vertex in graph){
-			// console.log('b', i++);
-			if( !graph[vertex].visited && graph[vertex].distT < distT){
-				console.log('c', i++);
+			if( !graph[vertex].dijkstra.visited && graph[vertex].dijkstra.distT < distT){
 				nameV = vertex;
-				distT = graph[vertex].distT;
+				distT = graph[vertex].dijkstra.distT;
 			}
 		}
 		if(nameV === ''){
 			console.log('chaine vide');
 			return '';
 		}
-		graph[nameV].visited = true;
-		console.log('SEARCH---end ', nameV);
+		graph[nameV].dijkstra.visited = true;
 		return nameV;
 	};
 
-	var progress = 1;
-	callbackProgress(progress);
-
+	var previousVertex;
 	for(vertex = searchNextVertex(); vertex !== ''; vertex = searchNextVertex()){
 		callbackProgress(progress++);
+		if(progress > i+10){
+			console.log('progress > i');
+			break;
+		}
 		if(vertex === dstGeoHash){
 			console.log('dst found');
 			break;
 		}
+		if(previousVertex === vertex){
+			console.log('previous = current');
+			break;
+		}
+		previousVertex = vertex;
 
-		for(var edge = 0;  edge < graph[vertex].length; edge++){
-			// console.log('BOUCLE____2');
-			var dist = graph[vertex][edge].dir;
-			// console.log('graph[vertex].distT ', graph[vertex].distT);
-			// console.log('graph[vertex][edge].dist ', graph[vertex][edge].dist);
-			var newDist = graph[vertex].distT + graph[vertex][edge].dist;
-			console.log(newDist);
-			if(newDist <  graph[dist].distT){
-				console.log('vertex', vertex, graph[vertex]);
-				console.log('dist', dist, graph[dist]);
-				graph[dist].distT = newDist;
-				graph[dist].prev = vertex;
+		for(var secondVertex in graph[vertex].edge){
+
+			var newDist = graph[vertex].dijkstra.distT + graph[vertex].edge[secondVertex].dist;
+
+			if(newDist <  graph[secondVertex].dijkstra.distT){
+				graph[secondVertex].dijkstra.distT = newDist;
+				graph[secondVertex].dijkstra.prev = vertex;
 			}
 		}
 	}
 
-	console.log(i++);
 	console.log(graph);
 	console.log(srcGeoHash);
 	console.log(dstGeoHash);

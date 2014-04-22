@@ -70,7 +70,7 @@ DBGraph.prototype.count = function(graph){
 	for(var vertex in graph){
 		i = 0;
 		/* jshint unused: false */
-		for(var edge in graph[vertex]){
+		for(var edge in graph[vertex].edge){
 			i++;
 		}
 		if(!truc[i]){
@@ -97,22 +97,22 @@ DBGraph.prototype.simplify = function(graph){
 				dir[i++] = j;
 			}
 			if(graph[dir[0]]){
-				if(!graph[dir[0]][dir[1]]){
-					graph[dir[0]][dir[1]] = {};
-					graph[dir[0]][dir[1]].dist =
-							graph[vertex][dir[0]].dist +
-							graph[vertex][dir[1]].dist;
-					delete(graph[dir[0]][vertex]);
+				if(!graph[dir[0]].edge[dir[1]]){
+					graph[dir[0]].edge[dir[1]] = {};
+					graph[dir[0]].edge[dir[1]].dist =
+							graph[vertex].edge[dir[0]].dist +
+							graph[vertex].edge[dir[1]].dist;
+					delete(graph[dir[0]].edge[vertex]);
 				}
 			}
 
 			if(graph[dir[1]]){
-				if(!graph[dir[1]][dir[0]]){
-					graph[dir[1]][dir[0]] = {};
-					graph[dir[1]][dir[0]].dist =
-							graph[vertex][dir[1]].dist +
-							graph[vertex][dir[0]].dist;
-					delete(graph[dir[1]][vertex]);
+				if(!graph[dir[1]].edge[dir[0]]){
+					graph[dir[1]].edge[dir[0]] = {};
+					graph[dir[1]].edge[dir[0]].dist =
+							graph[vertex].edge[dir[1]].dist +
+							graph[vertex].edge[dir[0]].dist;
+					delete(graph[dir[1]].edge[vertex]);
 				}
 			}
 			delete(graph[vertex]);
@@ -149,14 +149,21 @@ DBGraph.prototype.addLineToGraph = function(line){
 		if(!this.graph[hashStart]){
 			this.graph[hashStart] = {};
 		}
-		this.graph[hashStart][hashEnd] = {};
-		this.graph[hashStart][hashEnd].dist = dist;
-
+		if(!this.graph[hashStart].edge){
+			this.graph[hashStart].edge = {};
+		}
 		if(!this.graph[hashEnd]){
 			this.graph[hashEnd] = {};
 		}
-		this.graph[hashEnd][hashStart] = {};
-		this.graph[hashEnd][hashStart].dist = dist;
+		if(!this.graph[hashEnd].edge){
+			this.graph[hashEnd].edge = {};
+		}
+
+		this.graph[hashStart].edge[hashEnd] = {};
+		this.graph[hashStart].edge[hashEnd].dist = dist;
+		
+		this.graph[hashEnd].edge[hashStart] = {};
+		this.graph[hashEnd].edge[hashStart].dist = dist;
 		// console.log(start, end, hashStart, hashEnd);
 	}
 };
@@ -370,7 +377,7 @@ DBGraph.prototype.GetGraph = function(){
 		}else{
 			resolve(this.graph);
 		}
-	}));
+	}, this));
 };
 
 DBGraph.prototype.GetComputeGraph = function(){
@@ -384,13 +391,11 @@ DBGraph.prototype.GetComputeGraph = function(){
 		}else{
 			resolve(this.computeGraph);
 		}
-	}));
+	}, this));
 };
 
 DBGraph.prototype.searchNearestNode = function(coord){
-	console.log('searchNearestNode a');
 	this.GetGraph();
-	console.log('searchNearestNode b');
 	var precision  = this.GeoHash.PRECISION;
 	var found = false;
 	var result;
@@ -401,7 +406,6 @@ DBGraph.prototype.searchNearestNode = function(coord){
 			precision--
 		];
 		var hash = this.GeoHash.encode(argEncode);
-		console.log('searchNearestNode c', precision, hash);
 		for(var vertex in this.graph){
 			if(vertex.startsWith(hash)){
 				found = true;
@@ -410,7 +414,7 @@ DBGraph.prototype.searchNearestNode = function(coord){
 			}
 		}
 	}
-	console.log('searchNearestNode d :', result);
+	console.log('searchNearestNode :', result);
 	return result;
 };
 
