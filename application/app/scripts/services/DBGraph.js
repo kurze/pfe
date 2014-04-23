@@ -87,13 +87,13 @@ DBGraph.prototype.simplify = function(graph){
 	for(var vertex in graph){
 		var k=0;
 		/* jshint unused: false */
-		for(var edge in graph[vertex]){
+		for(var edge in graph[vertex].edge){
 			k++;
 		}
 		if(k === 2){
 			var dir = [];
 			i = 0;
-			for(var j in graph[vertex]){
+			for(var j in graph[vertex].edge){
 				dir[i++] = j;
 			}
 			if(graph[dir[0]]){
@@ -161,7 +161,7 @@ DBGraph.prototype.addLineToGraph = function(line){
 
 		this.graph[hashStart].edge[hashEnd] = {};
 		this.graph[hashStart].edge[hashEnd].dist = dist;
-		
+
 		this.graph[hashEnd].edge[hashStart] = {};
 		this.graph[hashEnd].edge[hashStart].dist = dist;
 		// console.log(start, end, hashStart, hashEnd);
