@@ -137,7 +137,12 @@ GeoHash.prototype.decode = function(hashString) {
 	var lon = (bbox[1] + bbox[3]) / 2;
 	var laterr = bbox[2] - lat;
 	var lonerr = bbox[3] - lon;
-	return [+lat, +lon, +laterr, +lonerr];
+	return [+lon, +lat, +laterr, +lonerr];
+};
+
+GeoHash.prototype.decodeSimple = function(hashString) {
+	var result = this.decode(hashString);
+	return [result[0], result[1]];
 };
 
 

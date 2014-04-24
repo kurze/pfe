@@ -31,7 +31,7 @@ CEDijkstra.prototype.getMode = function() {
 
 CEDijkstra.prototype.computePath = function(source, destination, callbackProgress, callbackFinal) {
 	console.log('start computePath', Date.now()/1000%1000);
-	var path = Object;
+	var roadmap = Object;
 	callbackProgress(0);
 
 	this.DBGraph.GetGraph().then($.proxy(function(graph){
@@ -43,16 +43,21 @@ CEDijkstra.prototype.computePath = function(source, destination, callbackProgres
 		console.log('research ok :', source, destination);
 		callbackProgress(2);
 
-		this.dijkstra(graph, source, destination, callbackProgress, callbackFinal);
+		graph = this.dijkstra(graph, source, destination, callbackProgress);
+		roadmap = this.extractPath(graph, source, destination);
+		console.log('end computePath', Date.now()/1000%1000);
+		callbackFinal(roadmap);
 	}, this));
 };
 
-CEDijkstra.prototype.dijkstra = function(graph, src, dst, callbackProgress, callbackFinal) {
+CEDijkstra.prototype.dijkstra = function(graph, src, dst, callbackProgress) {
 	console.log('start dijkstra', Date.now()/1000%1000);
 	var progress = 0;
 
 	graph = this.initGraph(graph, src, dst);
+	console.log('initGraph done', Date.now()/1000%1000);
 	graph = this.simplify(graph);
+	console.log('simplify done', Date.now()/1000%1000);
 
 	graph[src].dijkstra.distT = 0;
 
@@ -80,7 +85,7 @@ CEDijkstra.prototype.dijkstra = function(graph, src, dst, callbackProgress, call
 
 	if(vertex === dst){
 		console.log('dijkstra done', Date.now()/1000%1000);
-		callbackFinal();
+		return graph;
 	}
 };
 
@@ -141,9 +146,16 @@ CEDijkstra.prototype.simplify = function(graph){
 			if(graph[dir[0]]){
 				if(!graph[dir[0]].edge[dir[1]]){
 					graph[dir[0]].edge[dir[1]] = {};
+
 					graph[dir[0]].edge[dir[1]].dist =
 							graph[vertex].edge[dir[0]].dist +
 							graph[vertex].edge[dir[1]].dist;
+
+					if(!graph[dir[0]].edge[dir[1]].step){
+						graph[dir[0]].edge[dir[1]].step = [];
+					}
+					graph[dir[0]].edge[dir[1]].step.push(vertex);
+
 					delete(graph[dir[0]].edge[vertex]);
 				}
 			}
@@ -151,9 +163,16 @@ CEDijkstra.prototype.simplify = function(graph){
 			if(graph[dir[1]]){
 				if(!graph[dir[1]].edge[dir[0]]){
 					graph[dir[1]].edge[dir[0]] = {};
+
 					graph[dir[1]].edge[dir[0]].dist =
 							graph[vertex].edge[dir[1]].dist +
 							graph[vertex].edge[dir[0]].dist;
+
+					if(!graph[dir[1]].edge[dir[0]].step){
+						graph[dir[1]].edge[dir[0]].step = [];
+					}
+					graph[dir[1]].edge[dir[0]].step.push(vertex);
+
 					delete(graph[dir[1]].edge[vertex]);
 				}
 			}
@@ -161,6 +180,76 @@ CEDijkstra.prototype.simplify = function(graph){
 		}
 	}
 	return graph;
+};
+
+/**
+ * extractPath from graph with dijkstra data to geojson format
+ * @param  {[type]} graph graph with dijkstra data
+ * @return {[type]}       roadmap in geojson (object with struct describe by geojson)
+ */
+CEDijkstra.prototype.extractPath = function(graph, src, dst){
+	// console.log('extractPath', Date.now()/1000%1000);
+	var currentVertex = dst;
+	var roadmap = {
+		type : 'FeatureCollection',
+		features : []
+	};
+
+	var tmpArrayStep = [];
+
+	// var step = {
+	// 	type: 'Feature',
+	// 	// properties : {
+	// 	// 	distance : 0
+	// 	// },
+	// 	geometry : {
+	// 		type : 'LineString',
+	// 		coordinates : []
+	// 	}
+	// };
+
+	var addToStep = $.proxy(function(step, coor){
+		step.geometry.coordinates.push(
+			this.GeoHash.decodeSimple(
+				coor
+			)
+		);
+	}, this);
+
+	while(currentVertex !== src){
+
+		var tmpStep = {
+			type: 'Feature',
+			properties : {
+				distance : 0
+			},
+			geometry : {
+				type : 'LineString',
+				coordinates : []
+			}
+		};
+		var prev = graph[currentVertex].dijkstra.prev;
+
+		addToStep(tmpStep, prev);
+
+		for(var i in graph[prev].edge[currentVertex].step){
+			if(i%3===0){
+				addToStep(tmpStep, graph[prev].edge[currentVertex].step[i]);
+			}
+		}
+
+		addToStep(tmpStep, currentVertex);
+
+		tmpArrayStep.push(tmpStep);
+		currentVertex = prev;
+	}
+
+	for (var j = tmpArrayStep.length - 1; j >= 0; j--) {
+		roadmap.features.push(tmpArrayStep[j]);
+	}
+	console.log(roadmap);
+	console.log(JSON.stringify(roadmap));
+	return roadmap;
 };
 
 angular.module('app').service('CEDijkstra', ['DBGraph', 'GeoHash', CEDijkstra]);
