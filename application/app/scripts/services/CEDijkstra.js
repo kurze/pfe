@@ -131,6 +131,26 @@ CEDijkstra.prototype.initGraph = function(graph, src, dst){
 
 CEDijkstra.prototype.simplify = function(graph){
 	var i = 0;
+
+	var removeVertex = function(v, d0, d1){
+		if(graph[d0]){
+			if(!graph[d0].edge[d1]){
+				graph[d0].edge[d1] = {};
+
+				graph[d0].edge[d1].dist =
+						graph[v].edge[d0].dist +
+						graph[v].edge[d1].dist;
+
+				if(!graph[d0].edge[d1].step){
+					graph[d0].edge[d1].step = [];
+				}
+				graph[d0].edge[d1].step.push(v);
+
+				delete(graph[d0].edge[v]);
+			}
+		}
+	};
+
 	for(var vertex in graph){
 		var k=0;
 		/* jshint unused: false */
@@ -143,39 +163,9 @@ CEDijkstra.prototype.simplify = function(graph){
 			for(var j in graph[vertex].edge){
 				dir[i++] = j;
 			}
-			if(graph[dir[0]]){
-				if(!graph[dir[0]].edge[dir[1]]){
-					graph[dir[0]].edge[dir[1]] = {};
 
-					graph[dir[0]].edge[dir[1]].dist =
-							graph[vertex].edge[dir[0]].dist +
-							graph[vertex].edge[dir[1]].dist;
-
-					if(!graph[dir[0]].edge[dir[1]].step){
-						graph[dir[0]].edge[dir[1]].step = [];
-					}
-					graph[dir[0]].edge[dir[1]].step.push(vertex);
-
-					delete(graph[dir[0]].edge[vertex]);
-				}
-			}
-
-			if(graph[dir[1]]){
-				if(!graph[dir[1]].edge[dir[0]]){
-					graph[dir[1]].edge[dir[0]] = {};
-
-					graph[dir[1]].edge[dir[0]].dist =
-							graph[vertex].edge[dir[1]].dist +
-							graph[vertex].edge[dir[0]].dist;
-
-					if(!graph[dir[1]].edge[dir[0]].step){
-						graph[dir[1]].edge[dir[0]].step = [];
-					}
-					graph[dir[1]].edge[dir[0]].step.push(vertex);
-
-					delete(graph[dir[1]].edge[vertex]);
-				}
-			}
+			removeVertex(vertex, dir[0], dir[1]);
+			removeVertex(vertex, dir[1], dir[0]);
 			delete(graph[vertex]);
 		}
 	}

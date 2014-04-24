@@ -50,45 +50,6 @@ DBGraph.prototype.count = function(graph){
 	console.log('graph size :', j);
 };
 
-DBGraph.prototype.simplify = function(graph){
-	var i = 0;
-	for(var vertex in graph){
-		var k=0;
-		/* jshint unused: false */
-		for(var edge in graph[vertex].edge){
-			k++;
-		}
-		if(k === 2){
-			var dir = [];
-			i = 0;
-			for(var j in graph[vertex].edge){
-				dir[i++] = j;
-			}
-			if(graph[dir[0]]){
-				if(!graph[dir[0]].edge[dir[1]]){
-					graph[dir[0]].edge[dir[1]] = {};
-					graph[dir[0]].edge[dir[1]].dist =
-							graph[vertex].edge[dir[0]].dist +
-							graph[vertex].edge[dir[1]].dist;
-					delete(graph[dir[0]].edge[vertex]);
-				}
-			}
-
-			if(graph[dir[1]]){
-				if(!graph[dir[1]].edge[dir[0]]){
-					graph[dir[1]].edge[dir[0]] = {};
-					graph[dir[1]].edge[dir[0]].dist =
-							graph[vertex].edge[dir[1]].dist +
-							graph[vertex].edge[dir[0]].dist;
-					delete(graph[dir[1]].edge[vertex]);
-				}
-			}
-			delete(graph[vertex]);
-		}
-	}
-	return graph;
-};
-
 DBGraph.prototype.saveState = function(){
 	this.count(this.graph);
 	localforage.setItem(KEY_GRAPH, JSON.stringify(this.graph));
