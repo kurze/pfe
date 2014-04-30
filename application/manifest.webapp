@@ -1,0 +1,9 @@
+{
+	"version": "0.1",
+	"name": "ONAC",
+	"descrription" : "offline navigation app for cyclist",
+	"launch_path" : "/index.html",
+	"developer": {
+		"name" : "Simon Kesteloot"
+	}
+}
