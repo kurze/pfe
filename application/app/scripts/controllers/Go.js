@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('app')
-	.controller('GoCtrl', ['$scope', '$log', 'ListeComputeEngine', 'ListeRenderEngine', 'Destination', function ($scope, $log, ListeCE, ListeRE, Destination) {
+	.controller('GoCtrl', ['$scope', '$log', 'ListeComputeEngine', 'ListeRenderEngine', 'Destination', 'Monitor', function ($scope, $log, ListeCE, ListeRE, Destination, Monitor) {
 		$scope.hideProgress = true;
 		$scope.hideWarning = true;
 		$scope.position = null;
@@ -19,7 +19,6 @@ angular.module('app')
 				!$scope.CESelected ||
 				// !$scope.RESelected &&
 				!$scope.destinationSelected;
-			// console.log($scope.forbidCompute);
 			if(uFCnbCall++ > 0){
 				$scope.$apply();
 			}
@@ -52,26 +51,30 @@ angular.module('app')
 		verifyComputable();
 
 		function geoSuccess(position) {
-			// $scope.position = position;
 			$scope.position = position;
 			$scope.geolocationOK = true;
 			$scope.warning = '';
-			updateForbidCompute();
-			// console.log(position);
+			if(!$scope.computeLauch){
+				updateForbidCompute();
+			}else{
+				Monitor.setGeolocation(position);
+			}
 		}
 
 		function geoError() {
 			$scope.hideWarning = false;
 			$scope.warning += 'Sorry, no position available.';
 			$scope.geolocationOK = false;
-			updateForbidCompute();
+			if(!$scope.computeLauch){
+				updateForbidCompute();
+			}
 		}
 
 		var geoOptions = {
 			// documentation @ https://developer.mozilla.org/en-US/docs/Web/API/PositionOptions
 			enableHighAccuracy : false,
-			maximumAge : 3000,
-			timeout : 10000
+			maximumAge : 10000,
+			timeout : 15000
 		};
 
 		navigator.geolocation.watchPosition(geoSuccess, geoError, geoOptions);
@@ -86,13 +89,17 @@ angular.module('app')
 			
 		};
 		
-		var callBackComputeFinal = $.proxy(function(path){
-			this.path = path;
+		var callBackComputeFinal = $.proxy(function(rm){
+			this.roadmap = rm;
 			$scope.progress = 'complete';
+			Monitor.setRoadMap(rm);
+			Monitor.launch();
+
 		}, this);
 
 		$scope.compute = function(){
 			$scope.hideProgress = false;
+			$scope.computeLauch = true;
 			ListeCE.selected.computePath(
 				[$scope.position.coords.longitude, $scope.position.coords.latitude],
 				Destination.get(),
