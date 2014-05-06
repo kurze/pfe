@@ -3,7 +3,7 @@
 var Monitor = function(GeoHash) {
 	this.GeoHash = GeoHash;
 	this.stepNumber = 0;
-	this.currentStep = [];
+	this.step = [];
 };
 
 Monitor.prototype.setComputeEngine = function(ce) {
@@ -61,7 +61,8 @@ Monitor.prototype.launch = function(){
 	for(var i = 0; i<3 && i<this.roadMap.features.length; i++){
 		step[i] = this.roadMap.features[this.stepNumber].geometry;
 	}
-	this.currentStep = step;
+	this.step = step;
+	this.renderEngine.initialize();
 	this.renderEngine.setCurrentStep(step);
 };
 
