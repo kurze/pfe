@@ -24,5 +24,26 @@ REHelloWorld.prototype.getMode = function() {
 	return 'video';
 };
 
+/// initialize context of view, keep empty if nothing need to be done
+REHelloWorld.prototype.initialize = function(){
+};
+
+
+/// push complete roadmap, keep empty if not used
+REHelloWorld.prototype.setRoadMap = function(rm){
+	this.roadmap = rm;
+};
+
+/// function call in case of step change
+REHelloWorld.prototype.setCurrentStep = function(step){
+	this.step = step;
+};
+
+/// function call in case of geolocation change
+REHelloWorld.prototype.setGeolocation = function(coord){
+	this.postion = coord;
+};
+
+
 /// attache engine to the app as a service
 angular.module('app').service('REHelloWorld', REHelloWorld);
