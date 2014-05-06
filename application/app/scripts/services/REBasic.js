@@ -27,9 +27,11 @@ REBasic.prototype.getMode = function() {
 REBasic.prototype.initialize = function(){
 	console.log('REBasic initialize');
 	var draw = SVG('REVideo').size(320, 320);
-	// var rect = draw.rect(300, 300).fill('none').stroke({width : 1});
-	// var frame = draw.polygon('0,0, 0,320, 320,320, 320,0').fill('none').stroke({witdh:1});
-	// var line = draw.line(0, 0, 100, 150).stroke({ width: 1});
+	this.arrow = [];
+	this.arrow[0] = draw.line(160,320, 160,160).stroke({width:3});
+	this.arrow[1] = draw.line(160,320, 160,160).stroke({width:3});
+	this.arrow[2] = draw.line(160,320, 150,310).stroke({width:3});
+	this.arrow[3] = draw.line(160,320, 170,310).stroke({width:3});
 	this.draw = draw;
 };
 
@@ -50,9 +52,9 @@ REBasic.prototype.setGeolocation = function(coord){
 	var angle = this.calcAngle(cross, prev, next);
 	angle = rad2deg(angle);
 	console.log('angle', angle);
-	this.baseArrow = this.draw.line(160,320, 160,160).stroke({width:1});
-	this.endArrow = this.draw.line(160,320, 160,160).stroke({width:1});
-	this.endArrow.rotate(angle, 160, 160);
+	for(var i =1; i< this.arrow.length; i++){
+		this.arrow[i].rotate(angle, 160, 160);
+	}
 
 };
 
