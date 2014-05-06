@@ -187,17 +187,6 @@ CEDijkstra.prototype.extractPath = function(graph, src, dst){
 
 	var tmpArrayStep = [];
 
-	// var step = {
-	// 	type: 'Feature',
-	// 	// properties : {
-	// 	// 	distance : 0
-	// 	// },
-	// 	geometry : {
-	// 		type : 'LineString',
-	// 		coordinates : []
-	// 	}
-	// };
-
 	var addToStep = $.proxy(function(step, coor){
 		step.geometry.coordinates.push(
 			this.GeoHash.decodeSimple(
