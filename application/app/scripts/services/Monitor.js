@@ -74,13 +74,13 @@ Monitor.prototype.calcAngle = function(A, B, C){
 	var AC = this.calcDist(A, C);
 	var BC = this.calcDist(B, C);
 
-	var tmp1 = Math.pow(AB) + Math.pow(AC) - Math.pow(BC);
+	var tmp1 = Math.pow(AB, 2) + Math.pow(AC, 2) - Math.pow(BC, 2);
 	var tmp2 = 2 * AB * AC;
 	return Math.acos(tmp1/tmp2);
 };
 
 Monitor.prototype.calcDist = function(A, B){
-	var squareAB = Math.pow(A[0]-B[0]) + Math.pow(A[1]-B[1]);
+	var squareAB = Math.pow(A[0]-B[0], 2) + Math.pow(A[1]-B[1], 2);
 	return Math.sqrt(squareAB);
 };
 
