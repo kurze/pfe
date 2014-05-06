@@ -64,6 +64,7 @@ Monitor.prototype.launch = function(){
 	this.step = step;
 	this.renderEngine.initialize();
 	this.renderEngine.setCurrentStep(step);
+	this.renderEngine.setGeolocation(this.position);
 };
 
 /**
