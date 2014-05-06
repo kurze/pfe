@@ -74,6 +74,7 @@ angular.module('app')
 	.service('ListeRenderEngine', [
 		'$log',
 		'REHelloWorld',
+		'REBasic',
 		// ^-- add new Render Engine here --^
 		ListeRenderEngine
 	]);

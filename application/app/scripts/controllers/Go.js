@@ -4,20 +4,22 @@ angular.module('app')
 	.controller('GoCtrl', ['$scope', '$log', 'ListeComputeEngine', 'ListeRenderEngine', 'Destination', 'Monitor', function ($scope, $log, ListeCE, ListeRE, Destination, Monitor) {
 		$scope.hideProgress = true;
 		$scope.hideWarning = true;
+		$scope.hideREVideo = true;
+		$scope.hideREAudio = true;
 		$scope.position = null;
 		$scope.warning = '';
 
 		$scope.forbidCompute = true;
 		$scope.geolocationOK = false;
 		$scope.CESelected = false;
-		// $scope.RESelected = false;
+		$scope.RESelected = false;
 		$scope.destinationSelected = false;
 		var uFCnbCall = 0;
 		function updateForbidCompute(){
 			$scope.forbidCompute =
 				!$scope.geolocationOK ||
 				!$scope.CESelected ||
-				// !$scope.RESelected &&
+				!$scope.RESelected &&
 				!$scope.destinationSelected;
 			if(uFCnbCall++ > 0){
 				$scope.$apply();
@@ -31,15 +33,16 @@ angular.module('app')
 				$scope.warning += 'Choose a compute engine first';
 			}else{
 				$scope.CESelected = true;
+				$scope.CE = ListeCE.selected;
 			}
 
-			// if(ListeRE.selected === null){
-			// 	$scope.hideWarning = false;
-			// 	$scope.RESelected = false;
-			// 	$scope.warning += 'Choose a render engine first<br/>';
-			// }else{
-			// 	$scope.RESelected = true;
-			// }
+			if(ListeRE.selected === null){
+				$scope.hideWarning = false;
+				$scope.RESelected = false;
+				$scope.warning += 'Choose a render engine first<br/>';
+			}else{
+				$scope.RESelected = true;
+			}
 			
 			if(Destination.getLat() === null || Destination.getLon() === null){
 				$scope.destinationSelected = false;
@@ -92,9 +95,12 @@ angular.module('app')
 		var callBackComputeFinal = $.proxy(function(rm){
 			this.roadmap = rm;
 			$scope.progress = 'complete';
+			$scope.hideREAudio = false;
+			$scope.hideREVideo = false;
+			$scope.$apply();
+			Monitor.setRenderEngine(ListeRE.selected.video);
 			Monitor.setRoadMap(rm);
 			Monitor.launch();
-
 		}, this);
 
 		$scope.compute = function(){
