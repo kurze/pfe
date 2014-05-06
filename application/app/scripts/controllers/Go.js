@@ -101,6 +101,7 @@ angular.module('app')
 			Monitor.setRenderEngine(ListeRE.selected.video);
 			Monitor.setRoadMap(rm);
 			Monitor.launch();
+			window.setTimeout(function(){$scope.hideLaunchCompute = true; $scope.$apply();}, 1000);
 		}, this);
 
 		$scope.compute = function(){

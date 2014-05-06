@@ -6,18 +6,22 @@
 </div>
 
 <div class="jumbotron">
-	<p>Compute Engine : {{CE.getName()}}</p>
-	<p>mode : {{CE.getMode()}}</p>
-	<p>
-		<a ng-click="compute()" class="btn btn-primary btn-block" ng-disabled="forbidCompute">Compute Path</a>
-	<p>
-	<p ng-hide="hideProgress">{{progress}}</p>
-	<div ng-hide="hideWarning">
-		<p>{{warning}}</p>
-		<p><a class="btn btn-default btn-block" href="#">Return</a></p>
-	</div>
-	<div ng-hide="hideResultCompute">
-		<p>{{resultCompute}}</p>
+	<div ng-hide="hideLaunchCompute">
+		<div ng-show="CE">
+			<p>Compute Engine : {{CE.getName()}}</p>
+			<p>mode : {{CE.getMode()}}</p>
+		</div>
+		<p>
+			<a ng-click="compute()" class="btn btn-primary btn-block" ng-disabled="forbidCompute">Compute Path</a>
+		<p>
+		<p ng-hide="hideProgress">{{progress}}</p>
+		<div ng-hide="hideWarning">
+			<p>{{warning}}</p>
+			<p><a class="btn btn-default btn-block" href="#">Return</a></p>
+		</div>
+		<div ng-hide="hideResultCompute">
+			<p>{{resultCompute}}</p>
+		</div>
 	</div>
 	<div id="REVideo" ng-hide="hideREVideo">
 		{{REVideo}}
