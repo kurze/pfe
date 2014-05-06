@@ -17,10 +17,12 @@
 	</div>
 	<div class="row">
 		<ul class="list-unstyled col-md-4" ng-repeat="mode in ['video', 'audio', 'other']">
-			<li>Currently selected: {{selected[mode].getName()}}</li>
-			<li>version : {{selected[mode].getVersion()}}</li>
-			<li>id : {{selected[mode].getId()}}</li>
-			<li>mode : {{selected[mode].getMode()}}</li>
+			<div ng-show="selected[mode]">
+				<li>Currently selected: {{selected[mode].getName()}}</li>
+				<li>version : {{selected[mode].getVersion()}}</li>
+				<li>id : {{selected[mode].getId()}}</li>
+				<li>mode : {{selected[mode].getMode()}}</li>
+			</div>
 		</ul>
 	</div>
 	<a class="btn btn-default btn-block" href="#">Return</a>
