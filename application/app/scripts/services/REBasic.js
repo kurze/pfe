@@ -50,20 +50,13 @@ REBasic.prototype.setGeolocation = function(coord){
 	var cross = this.step[1].coordinates[0];
 	var next = this.step[2].coordinates[1];
 	var angle = this.calcAngle(cross, prev, next);
-	angle = rad2deg(angle);
+	angle = this.rad2deg(angle);
 	console.log('angle', angle);
 	for(var i =1; i< this.arrow.length; i++){
 		this.arrow[i].rotate(angle, 160, 160);
 	}
 
 };
-
-function deg2rad(deg) {
-	return deg * (Math.PI/180);
-}
-function rad2deg(rad) {
-	return rad * (180/Math.PI);
-}
 
 REBasic.prototype.calcAngle = function(A, B, C){
 	console.log('start calcAngle');
@@ -85,15 +78,22 @@ REBasic.prototype.calcDist = function(start, end){
 	var lon2 = end[1];
 
 	var R = 6371; // Radius of the earth in km
-	var dLat = deg2rad(lat2-lat1);  // deg2rad below
-	var dLon = deg2rad(lon2-lon1);
+	var dLat = this.deg2rad(lat2-lat1);  // deg2rad below
+	var dLon = this.deg2rad(lon2-lon1);
 	var a =
 		Math.sin(dLat/2) * Math.sin(dLat/2) +
-		Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+		Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
 		Math.sin(dLon/2) * Math.sin(dLon/2);
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 	var d = R * c; // Distance in km
 	return d;
+};
+
+REBasic.prototype.deg2rad = function(deg) {
+	return deg * (Math.PI/180);
+};
+REBasic.prototype.rad2deg = function(rad) {
+	return rad * (180/Math.PI);
 };
 
 /// attache engine to the app as a service
